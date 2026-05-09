@@ -1,0 +1,8 @@
+node_modules
+.next
+.open-next
+.wrangler
+.env*
+!.env.local.example
+*.log
+.DS_Store
