@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { EditorContent, useEditor, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -117,6 +117,13 @@ export function DocxTiptapEditor({
     const [dirty, setDirty] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
+    const onDirtyChangeRef = useRef(onDirtyChange);
+    const onSavedRef = useRef(onSaved);
+
+    useEffect(() => {
+        onDirtyChangeRef.current = onDirtyChange;
+        onSavedRef.current = onSaved;
+    }, [onDirtyChange, onSaved]);
 
     const extensions = useMemo(() => [StarterKit, TextAlign], []);
     const editor = useEditor({
@@ -131,7 +138,7 @@ export function DocxTiptapEditor({
         },
         onUpdate: () => {
             setDirty(true);
-            onDirtyChange?.(true);
+            onDirtyChangeRef.current?.(true);
             setNotice(null);
         },
     });
@@ -198,13 +205,13 @@ export function DocxTiptapEditor({
             );
             editor.setEditable(pendingEditCount === 0);
             setDirty(false);
-            onDirtyChange?.(false);
+            onDirtyChangeRef.current?.(false);
         } catch (e) {
             setError(e instanceof Error ? e.message : String(e));
         } finally {
             setLoading(false);
         }
-    }, [documentId, editor, onDirtyChange, versionId]);
+    }, [documentId, editor, versionId]);
 
     useEffect(() => {
         void loadContent();
@@ -255,9 +262,9 @@ export function DocxTiptapEditor({
             }
             setBaseVersionId(data.id ?? null);
             setDirty(false);
-            onDirtyChange?.(false);
+            onDirtyChangeRef.current?.(false);
             setNotice(`Saved ${data.version_number ? `as V${data.version_number}` : "as a new version"}.`);
-            onSaved?.({
+            onSavedRef.current?.({
                 id: data.id,
                 version_number: data.version_number ?? null,
                 document_id: data.document_id ?? documentId,
