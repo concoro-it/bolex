@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getApiBaseUrl } from "@/app/lib/apiBase";
 import type { MikeEditAnnotation } from "../shared/types";
 
 function normalizeText(s: string) {
@@ -244,8 +245,7 @@ export function EditCard({
                 data: { session },
             } = await supabase.auth.getSession();
             const token = session?.access_token;
-            const apiBase =
-                process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
+            const apiBase = getApiBaseUrl();
             const resp = await fetch(
                 `${apiBase}/single-documents/${annotation.document_id}/edits/${annotation.edit_id}/${verb}`,
                 {

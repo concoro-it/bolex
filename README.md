@@ -17,12 +17,7 @@ npm install --prefix backend
 npm install --prefix frontend
 ```
 
-Create local env files from the examples:
-
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.local.example frontend/.env.local
-```
+Create local env files with the required Supabase, storage, model provider, and API URL values.
 
 Run `backend/migrations/000_one_shot_schema.sql` in the Supabase SQL editor for a fresh database.
 
