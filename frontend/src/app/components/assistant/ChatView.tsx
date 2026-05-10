@@ -48,6 +48,9 @@ export function ChatView({
     const [reloadingEditIds, setReloadingEditIds] = useState<Set<string>>(
         () => new Set(),
     );
+    const [dirtyManualEditDocIds, setDirtyManualEditDocIds] = useState<
+        Set<string>
+    >(() => new Set());
     const { setSidebarOpen } = useSidebar();
 
 
@@ -209,6 +212,46 @@ export function ChatView({
                 next.add(args.editId);
                 return next;
             });
+        },
+        [],
+    );
+
+    const handleManualEditDirtyChange = useCallback(
+        (documentId: string, dirty: boolean) => {
+            setDirtyManualEditDocIds((prev) => {
+                const next = new Set(prev);
+                if (dirty) next.add(documentId);
+                else next.delete(documentId);
+                return next;
+            });
+        },
+        [],
+    );
+
+    const handleManualEditSaved = useCallback(
+        (args: {
+            documentId: string;
+            versionId: string;
+            versionNumber: number | null;
+        }) => {
+            invalidateDocxBytes(args.documentId);
+            setDirtyManualEditDocIds((prev) => {
+                const next = new Set(prev);
+                next.delete(args.documentId);
+                return next;
+            });
+            setTabs((prev) =>
+                prev.map((t) =>
+                    t.documentId === args.documentId
+                        ? {
+                              ...t,
+                              versionId: args.versionId,
+                              versionNumber: args.versionNumber,
+                              warning: null,
+                          }
+                        : t,
+                ),
+            );
         },
         [],
     );
@@ -534,9 +577,10 @@ export function ChatView({
                                                     handleEditResolved
                                                 }
                                                 onEditError={handleEditError}
-                                                isDocReloading={(docId) =>
-                                                    reloadingDocIds.has(docId)
-                                                }
+                                            isDocReloading={(docId) =>
+                                                reloadingDocIds.has(docId) ||
+                                                dirtyManualEditDocIds.has(docId)
+                                            }
                                                 isEditReloading={(editId) =>
                                                     reloadingEditIds.has(editId)
                                                 }
@@ -609,7 +653,8 @@ export function ChatView({
                         onCloseTab={closeTab}
                         onCloseAll={closeAllTabs}
                         isEditorReloading={(documentId) =>
-                            reloadingDocIds.has(documentId)
+                            reloadingDocIds.has(documentId) ||
+                            dirtyManualEditDocIds.has(documentId)
                         }
                         isEditReloading={(editId) =>
                             reloadingEditIds.has(editId)
@@ -619,6 +664,11 @@ export function ChatView({
                         onEditError={handleEditError}
                         onWarningDismiss={handleWarningDismiss}
                         onScrollChange={handleScrollChange}
+                        isManualEditDirty={(documentId) =>
+                            dirtyManualEditDocIds.has(documentId)
+                        }
+                        onManualEditDirtyChange={handleManualEditDirtyChange}
+                        onManualEditSaved={handleManualEditSaved}
                     />
                 </div>
             )}

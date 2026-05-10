@@ -41,6 +41,7 @@ export interface MikeDocument {
   status: "pending" | "processing" | "ready" | "error";
   created_at: string | null;
   updated_at?: string | null;
+  current_version_id?: string | null;
   /** Max version_number across assistant_edit rows, null if doc is unedited. */
   latest_version_number?: number | null;
 }

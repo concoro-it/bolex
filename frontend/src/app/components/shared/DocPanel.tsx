@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Eye, Loader2, Pencil } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getApiBaseUrl } from "@/app/lib/apiBase";
 import { applyOptimisticResolution } from "../assistant/EditCard";
 import { DocView } from "./DocView";
 import { DocxView } from "./DocxView";
+import { DocxTiptapEditor } from "./DocxTiptapEditor";
 import {
     displayCitationQuote,
     expandCitationToEntries,
@@ -73,6 +74,13 @@ interface Props {
     onWarningDismiss?: () => void;
     initialScrollTop?: number | null;
     onScrollChange?: (scrollTop: number) => void;
+    isManualEditDirty?: boolean;
+    onManualEditDirtyChange?: (dirty: boolean) => void;
+    onManualEditSaved?: (args: {
+        documentId: string;
+        versionId: string;
+        versionNumber: number | null;
+    }) => void;
 }
 
 /**
@@ -92,6 +100,9 @@ export function DocPanel({
     onWarningDismiss,
     initialScrollTop,
     onScrollChange,
+    isManualEditDirty,
+    onManualEditDirtyChange,
+    onManualEditSaved,
 }: Props) {
     // Pick the viewer from the filename only, not from mode. Switching
     // headers (citation ↔ edit ↔ document) for the same document must
@@ -99,6 +110,9 @@ export function DocPanel({
     // re-fetch every time they toggle. Tracked-change rendering still
     // only lives in DocxView, which is fine because edits are DOCX-only.
     const useDocxView = isDocxFilename(filename);
+    const [editorMode, setEditorMode] = useState<"preview" | "edit">(
+        "preview",
+    );
 
     const quotes: CitationQuote[] | undefined = useMemo(() => {
         if (mode.kind !== "citation") return undefined;
@@ -133,6 +147,7 @@ export function DocPanel({
                     versionId={versionId}
                     filename={filename}
                     isReloading={isReloading}
+                    isManualEditDirty={!!isManualEditDirty}
                 />
             ) : (
                 <div className="flex items-center justify-end gap-2 py-2">
@@ -146,6 +161,25 @@ export function DocPanel({
                             </span>
                         )}
                     </div>
+                    {useDocxView && (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setEditorMode((m) =>
+                                    m === "edit" ? "preview" : "edit",
+                                )
+                            }
+                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                        >
+                            {editorMode === "edit" ? (
+                                <Eye className="h-3.5 w-3.5" />
+                            ) : (
+                                <Pencil className="h-3.5 w-3.5" />
+                            )}
+                            {editorMode === "edit" ? "Preview" : "Edit"}
+                            {isManualEditDirty ? "*" : ""}
+                        </button>
+                    )}
                     <DownloadButton
                         documentId={documentId}
                         versionId={versionId}
@@ -155,7 +189,21 @@ export function DocPanel({
                 </div>
             )}
 
-            {useDocxView ? (
+            {useDocxView && editorMode === "edit" && mode.kind === "document" ? (
+                <DocxTiptapEditor
+                    documentId={documentId}
+                    versionId={versionId}
+                    filename={filename}
+                    onDirtyChange={onManualEditDirtyChange}
+                    onSaved={(version) => {
+                        onManualEditSaved?.({
+                            documentId,
+                            versionId: version.id,
+                            versionNumber: version.version_number,
+                        });
+                    }}
+                />
+            ) : useDocxView ? (
                 <DocxView
                     documentId={documentId}
                     versionId={versionId ?? undefined}
@@ -235,12 +283,14 @@ function TrackedChangeHeader({
     versionId,
     filename,
     isReloading,
+    isManualEditDirty,
 }: {
     mode: Extract<DocPanelMode, { kind: "edit" }>;
     documentId: string;
     versionId: string | null;
     filename: string;
     isReloading: boolean;
+    isManualEditDirty: boolean;
 }) {
     const { edit, isEditReloading, onResolveStart, onResolved, onError } = mode;
     return (
@@ -250,7 +300,7 @@ function TrackedChangeHeader({
                 <div className="ml-auto flex items-center gap-2 shrink-0">
                     <EditResolveButtons
                         edit={edit}
-                        isReloading={isEditReloading}
+                        isReloading={isEditReloading || isManualEditDirty}
                         onResolveStart={onResolveStart}
                         onResolved={onResolved}
                         onError={onError}

@@ -495,3 +495,50 @@
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0);
     }
 }
+
+.docx-tiptap-content {
+    min-height: 70vh;
+    outline: none;
+    color: #111827;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+.docx-tiptap-content p {
+    margin: 0 0 0.75rem;
+}
+
+.docx-tiptap-content h1,
+.docx-tiptap-content h2,
+.docx-tiptap-content h3 {
+    margin: 1.1rem 0 0.55rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.docx-tiptap-content h1 {
+    font-size: 1.45rem;
+}
+
+.docx-tiptap-content h2 {
+    font-size: 1.2rem;
+}
+
+.docx-tiptap-content h3 {
+    font-size: 1.05rem;
+}
+
+.docx-tiptap-content ul,
+.docx-tiptap-content ol {
+    margin: 0 0 0.75rem 1.5rem;
+    padding: 0;
+}
+
+.docx-tiptap-content ul {
+    list-style: disc;
+}
+
+.docx-tiptap-content ol {
+    list-style: decimal;
+}

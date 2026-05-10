@@ -13,8 +13,10 @@ import { useRouter } from "next/navigation";
 import {
     ChevronLeft,
     ChevronRight,
+    Eye,
     FileText,
     Loader2,
+    Pencil,
     Plus,
     Trash2,
     Upload,
@@ -42,6 +44,8 @@ import { ProjectExplorer } from "@/app/components/projects/ProjectExplorer";
 import { DocView } from "@/app/components/shared/DocView";
 import { OwnerOnlyModal } from "@/app/components/shared/OwnerOnlyModal";
 import { DocxView } from "@/app/components/shared/DocxView";
+import { DocxTiptapEditor } from "@/app/components/shared/DocxTiptapEditor";
+import { invalidateDocxBytes } from "@/app/hooks/useFetchDocxBytes";
 import { MikeIcon } from "@/components/chat/mike-icon";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
@@ -235,6 +239,12 @@ export default function ProjectAssistantChatPage({ params }: Props) {
     const [reloadingDocIds, setReloadingDocIds] = useState<Set<string>>(
         () => new Set(),
     );
+    const [editingDocIds, setEditingDocIds] = useState<Set<string>>(
+        () => new Set(),
+    );
+    const [dirtyManualEditDocIds, setDirtyManualEditDocIds] = useState<
+        Set<string>
+    >(() => new Set());
 
     const activeTab = tabs.find((t) => t.documentId === activeTabId) ?? null;
     const tabBarRef = useRef<HTMLDivElement | null>(null);
@@ -526,6 +536,54 @@ export default function ProjectAssistantChatPage({ params }: Props) {
         // bumping versionId + refetchKey on the matching tab and marking
         // it reloading like before.
         void _args;
+    };
+
+    const setManualEditDirty = (documentId: string, dirty: boolean) => {
+        setDirtyManualEditDocIds((prev) => {
+            const next = new Set(prev);
+            if (dirty) next.add(documentId);
+            else next.delete(documentId);
+            return next;
+        });
+    };
+
+    const handleManualEditSaved = (args: {
+        documentId: string;
+        versionId: string;
+        versionNumber: number | null;
+    }) => {
+        invalidateDocxBytes(args.documentId);
+        setManualEditDirty(args.documentId, false);
+        setTabs((prev) =>
+            prev.map((t) =>
+                t.documentId === args.documentId
+                    ? {
+                          ...t,
+                          versionId: args.versionId,
+                          refetchKey: (t.refetchKey ?? 0) + 1,
+                          warning: null,
+                      }
+                    : t,
+            ),
+        );
+        setProject((prev) =>
+            prev
+                ? {
+                      ...prev,
+                      documents: (prev.documents ?? []).map((doc) =>
+                          doc.id === args.documentId
+                              ? {
+                                    ...doc,
+                                    current_version_id: args.versionId,
+                                    latest_version_number:
+                                        args.versionNumber ??
+                                        doc.latest_version_number,
+                                }
+                              : doc,
+                      ),
+                  }
+                : prev,
+        );
     };
 
     const patchTab = (documentId: string, patch: Partial<DocTab>) => {
@@ -1055,38 +1113,118 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                     <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                         {activeTab ? (
                             isDocxTab(activeTab.filename) ? (
-                                <DocxView
-                                    key={activeTab.documentId}
-                                    documentId={activeTab.documentId}
-                                    versionId={activeTab.versionId}
-                                    refetchKey={activeTab.refetchKey}
-                                    quotes={activeQuotes ?? undefined}
-                                    highlightEdit={
-                                        editScrollTarget &&
-                                        editScrollTarget.documentId ===
-                                            activeTab.documentId
-                                            ? editScrollTarget
-                                            : null
-                                    }
-                                    onReady={() =>
-                                        handleDocxReady(activeTab.documentId)
-                                    }
-                                    warning={activeTab.warning ?? null}
-                                    onWarningDismiss={() =>
-                                        dismissTabWarning(activeTab.documentId)
-                                    }
-                                    initialScrollTop={
-                                        activeTab.scrollTop ?? null
-                                    }
-                                    onScrollChange={(top) =>
-                                        handleTabScrollChange(
-                                            activeTab.documentId,
-                                            top,
-                                        )
-                                    }
-                                    rounded={false}
-                                    bordered={false}
-                                />
+                                <>
+                                    <div className="flex h-10 shrink-0 items-center justify-end gap-2 border-b border-gray-200 bg-white px-3">
+                                        <span className="mr-auto truncate text-sm text-gray-700">
+                                            {activeTab.filename}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setEditingDocIds((prev) => {
+                                                    const next = new Set(prev);
+                                                    if (
+                                                        next.has(
+                                                            activeTab.documentId,
+                                                        )
+                                                    ) {
+                                                        next.delete(
+                                                            activeTab.documentId,
+                                                        );
+                                                    } else {
+                                                        next.add(
+                                                            activeTab.documentId,
+                                                        );
+                                                    }
+                                                    return next;
+                                                })
+                                            }
+                                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                                        >
+                                            {editingDocIds.has(
+                                                activeTab.documentId,
+                                            ) ? (
+                                                <Eye className="h-3.5 w-3.5" />
+                                            ) : (
+                                                <Pencil className="h-3.5 w-3.5" />
+                                            )}
+                                            {editingDocIds.has(
+                                                activeTab.documentId,
+                                            )
+                                                ? "Preview"
+                                                : "Edit"}
+                                            {dirtyManualEditDocIds.has(
+                                                activeTab.documentId,
+                                            )
+                                                ? "*"
+                                                : ""}
+                                        </button>
+                                    </div>
+                                    {editingDocIds.has(
+                                        activeTab.documentId,
+                                    ) ? (
+                                        <DocxTiptapEditor
+                                            key={`${activeTab.documentId}:editor`}
+                                            documentId={activeTab.documentId}
+                                            versionId={activeTab.versionId}
+                                            filename={activeTab.filename}
+                                            onDirtyChange={(dirty) =>
+                                                setManualEditDirty(
+                                                    activeTab.documentId,
+                                                    dirty,
+                                                )
+                                            }
+                                            onSaved={(version) =>
+                                                handleManualEditSaved({
+                                                    documentId:
+                                                        activeTab.documentId,
+                                                    versionId: version.id,
+                                                    versionNumber:
+                                                        version.version_number,
+                                                })
+                                            }
+                                            rounded={false}
+                                            bordered={false}
+                                        />
+                                    ) : (
+                                        <DocxView
+                                            key={activeTab.documentId}
+                                            documentId={activeTab.documentId}
+                                            versionId={activeTab.versionId}
+                                            refetchKey={activeTab.refetchKey}
+                                            quotes={activeQuotes ?? undefined}
+                                            highlightEdit={
+                                                editScrollTarget &&
+                                                editScrollTarget.documentId ===
+                                                    activeTab.documentId
+                                                    ? editScrollTarget
+                                                    : null
+                                            }
+                                            onReady={() =>
+                                                handleDocxReady(
+                                                    activeTab.documentId,
+                                                )
+                                            }
+                                            warning={activeTab.warning ?? null}
+                                            onWarningDismiss={() =>
+                                                dismissTabWarning(
+                                                    activeTab.documentId,
+                                                )
+                                            }
+                                            initialScrollTop={
+                                                activeTab.scrollTop ?? null
+                                            }
+                                            onScrollChange={(top) =>
+                                                handleTabScrollChange(
+                                                    activeTab.documentId,
+                                                    top,
+                                                )
+                                            }
+                                            rounded={false}
+                                            bordered={false}
+                                        />
+                                    )}
+                                </>
                             ) : (
                                 <DocView
                                     key={activeTab.documentId}
@@ -1175,7 +1313,16 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                                         >
                                             <UserMessage
                                                 content={msg.content ?? ""}
-                                                files={(msg as any).files}
+                                                files={
+                                                    (
+                                                        msg as MikeMessage & {
+                                                            files?: {
+                                                                filename: string;
+                                                                document_id?: string;
+                                                            }[];
+                                                        }
+                                                    ).files
+                                                }
                                             />
                                         </div>
                                     ) : (
@@ -1187,7 +1334,13 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                                                 i === messages.length - 1 &&
                                                 isResponseLoading
                                             }
-                                            isError={!!(msg as any).error}
+                                            isError={
+                                                !!(
+                                                    msg as MikeMessage & {
+                                                        error?: unknown;
+                                                    }
+                                                ).error
+                                            }
                                             annotations={msg.annotations}
                                             onCitationClick={
                                                 handleCitationClick
@@ -1204,7 +1357,8 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                                             onEditResolved={handleEditResolved}
                                             onEditError={handleEditError}
                                             isDocReloading={(docId) =>
-                                                reloadingDocIds.has(docId)
+                                                reloadingDocIds.has(docId) ||
+                                                dirtyManualEditDocIds.has(docId)
                                             }
                                         />
                                     ),

@@ -82,6 +82,13 @@ interface Props {
     }) => void;
     onWarningDismiss?: (tabId: string) => void;
     onScrollChange?: (tabId: string, scrollTop: number) => void;
+    isManualEditDirty?: (documentId: string) => boolean;
+    onManualEditDirtyChange?: (documentId: string, dirty: boolean) => void;
+    onManualEditSaved?: (args: {
+        documentId: string;
+        versionId: string;
+        versionNumber: number | null;
+    }) => void;
 }
 
 const MIN_WIDTH = 300;
@@ -100,6 +107,9 @@ export function AssistantSidePanel({
     onEditError,
     onWarningDismiss,
     onScrollChange,
+    isManualEditDirty,
+    onManualEditDirtyChange,
+    onManualEditSaved,
 }: Props) {
     const panelRef = useRef<HTMLDivElement>(null);
     const [panelWidth, setPanelWidth] = useState(() =>
@@ -264,6 +274,17 @@ export function AssistantSidePanel({
                                 onScrollChange={(scrollTop) =>
                                     onScrollChange?.(tab.id, scrollTop)
                                 }
+                                isManualEditDirty={
+                                    isManualEditDirty?.(tab.documentId) ??
+                                    false
+                                }
+                                onManualEditDirtyChange={(dirty) =>
+                                    onManualEditDirtyChange?.(
+                                        tab.documentId,
+                                        dirty,
+                                    )
+                                }
+                                onManualEditSaved={onManualEditSaved}
                             />
                         </div>
                     );

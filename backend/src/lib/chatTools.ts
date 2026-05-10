@@ -1029,7 +1029,7 @@ export async function runEditDocument(params: {
             .from("document_versions")
             .select("version_number")
             .eq("document_id", documentId)
-            .in("source", ["upload", "user_upload", "assistant_edit"])
+            .in("source", ["upload", "user_upload", "assistant_edit", "manual_edit"])
             .order("version_number", { ascending: false, nullsFirst: false })
             .limit(1)
             .maybeSingle();

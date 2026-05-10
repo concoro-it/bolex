@@ -27,6 +27,153 @@ import { singleFileUpload } from "../lib/upload";
 export const documentsRouter = Router();
 const ALLOWED_TYPES = new Set(["pdf", "docx", "doc"]);
 
+type TiptapMark = { type?: string };
+type TiptapNode = {
+  type?: string;
+  text?: string;
+  attrs?: Record<string, unknown> | null;
+  marks?: TiptapMark[];
+  content?: TiptapNode[];
+};
+
+const VERSIONED_SOURCES = ["upload", "user_upload", "assistant_edit", "manual_edit"];
+
+function textAlignFromAttrs(attrs: Record<string, unknown> | null | undefined) {
+  const value = typeof attrs?.textAlign === "string" ? attrs.textAlign : undefined;
+  if (value === "center" || value === "right" || value === "justify") return value;
+  return "left";
+}
+
+function collectPlainText(node: TiptapNode): string {
+  if (typeof node.text === "string") return node.text;
+  return (node.content ?? []).map(collectPlainText).join("");
+}
+
+async function tiptapJsonToDocxBuffer(content: TiptapNode, title: string): Promise<Buffer> {
+  const {
+    AlignmentType,
+    Document,
+    HeadingLevel,
+    Packer,
+    Paragraph,
+    TextRun,
+  } = await import("docx");
+
+  const FONT = "Times New Roman";
+  const SIZE = 22;
+  const headingMap: Record<number, typeof HeadingLevel[keyof typeof HeadingLevel]> = {
+    1: HeadingLevel.HEADING_1,
+    2: HeadingLevel.HEADING_2,
+    3: HeadingLevel.HEADING_3,
+  };
+  const alignmentMap = {
+    left: AlignmentType.LEFT,
+    center: AlignmentType.CENTER,
+    right: AlignmentType.RIGHT,
+    justify: AlignmentType.JUSTIFIED,
+  } as const;
+
+  const inlineRuns = (nodes: TiptapNode[] | undefined): InstanceType<typeof TextRun>[] => {
+    const runs: InstanceType<typeof TextRun>[] = [];
+    for (const node of nodes ?? []) {
+      if (node.type === "hardBreak") {
+        runs.push(new TextRun({ text: "", break: 1 }));
+        continue;
+      }
+      if (typeof node.text === "string") {
+        const markTypes = new Set((node.marks ?? []).map((m) => m.type));
+        runs.push(
+          new TextRun({
+            text: node.text,
+            font: FONT,
+            size: SIZE,
+            bold: markTypes.has("bold"),
+            italics: markTypes.has("italic"),
+          }),
+        );
+        continue;
+      }
+      runs.push(...inlineRuns(node.content));
+    }
+    return runs;
+  };
+
+  const children: InstanceType<typeof Paragraph>[] = [];
+
+  const pushParagraph = (
+    node: TiptapNode,
+    opts?: { bullet?: boolean; ordered?: boolean; headingLevel?: number },
+  ) => {
+    const text = collectPlainText(node);
+    const runs = inlineRuns(node.content);
+    if (!text.trim() && !opts?.headingLevel) {
+      children.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
+      return;
+    }
+    const align = textAlignFromAttrs(node.attrs);
+    children.push(
+      new Paragraph({
+        heading: opts?.headingLevel ? headingMap[Math.min(opts.headingLevel, 3)] : undefined,
+        bullet: opts?.bullet ? { level: 0 } : undefined,
+        numbering: opts?.ordered ? { reference: "ordered-list", level: 0 } : undefined,
+        alignment: alignmentMap[align],
+        spacing: { after: 120 },
+        children: runs.length ? runs : [new TextRun({ text, font: FONT, size: SIZE })],
+      }),
+    );
+  };
+
+  const walkBlocks = (nodes: TiptapNode[] | undefined) => {
+    for (const node of nodes ?? []) {
+      if (node.type === "paragraph") {
+        pushParagraph(node);
+      } else if (node.type === "heading") {
+        const level =
+          typeof node.attrs?.level === "number" ? node.attrs.level : 1;
+        pushParagraph(node, { headingLevel: level });
+      } else if (node.type === "bulletList" || node.type === "orderedList") {
+        for (const item of node.content ?? []) {
+          const paragraphs = (item.content ?? []).filter(
+            (child) => child.type === "paragraph" || child.type === "heading",
+          );
+          for (const paragraph of paragraphs) {
+            pushParagraph(paragraph, {
+              bullet: node.type === "bulletList",
+              ordered: node.type === "orderedList",
+            });
+          }
+        }
+      }
+    }
+  };
+
+  walkBlocks(content.content);
+  if (children.length === 0) {
+    children.push(new Paragraph({ children: [new TextRun({ text: title || "Document", font: FONT, size: SIZE })] }));
+  }
+
+  const doc = new Document({
+    numbering: {
+      config: [
+        {
+          reference: "ordered-list",
+          levels: [
+            {
+              level: 0,
+              format: "decimal",
+              text: "%1.",
+              alignment: AlignmentType.LEFT,
+              style: { paragraph: { indent: { left: 720, hanging: 360 } } },
+            },
+          ],
+        },
+      ],
+    },
+    sections: [{ children }],
+  });
+  return Packer.toBuffer(doc);
+}
+
 // GET /single-documents
 documentsRouter.get("/", requireAuth, async (req, res) => {
   const userId = res.locals.userId as string;
@@ -372,6 +519,183 @@ documentsRouter.get("/:documentId/versions", requireAuth, async (req, res) => {
   });
 });
 
+// GET /single-documents/:documentId/editor-content
+// Returns text-focused HTML for Tiptap plus the base version that must be
+// supplied on save. Complex DOCX layout is intentionally flattened here.
+documentsRouter.get("/:documentId/editor-content", requireAuth, async (req, res) => {
+  const userId = res.locals.userId as string;
+  const userEmail = res.locals.userEmail as string | undefined;
+  const { documentId } = req.params;
+  const versionIdParam =
+    typeof req.query.version_id === "string" ? req.query.version_id : null;
+  const db = createServerSupabase();
+
+  const { data: doc } = await db
+    .from("documents")
+    .select("id, filename, file_type, current_version_id, user_id, project_id")
+    .eq("id", documentId)
+    .single();
+  if (!doc)
+    return void res.status(404).json({ detail: "Document not found" });
+  const access = await ensureDocAccess(doc, userId, userEmail, db);
+  if (!access.ok)
+    return void res.status(404).json({ detail: "Document not found" });
+  if (doc.file_type !== "docx" && doc.file_type !== "doc") {
+    return void res.status(400).json({ detail: "Only DOCX documents can be edited." });
+  }
+
+  const active = await loadActiveVersion(documentId, db, versionIdParam);
+  if (!active)
+    return void res.status(404).json({ detail: "No file available" });
+  const raw = await downloadFile(active.storage_path);
+  if (!raw)
+    return void res.status(404).json({ detail: "Document bytes not available" });
+
+  const { count: pendingCount } = await db
+    .from("document_edits")
+    .select("id", { count: "exact", head: true })
+    .eq("version_id", active.id)
+    .eq("status", "pending");
+
+  const mammoth = await import("mammoth");
+  const result = await mammoth.convertToHtml({
+    buffer: Buffer.from(raw),
+  });
+
+  res.json({
+    html: result.value || "<p></p>",
+    base_version_id: active.id,
+    version_number: active.version_number,
+    pending_edit_count: pendingCount ?? 0,
+  });
+});
+
+// POST /single-documents/:documentId/editor-save
+// Saves Tiptap JSON as a brand-new manual_edit version. It never overwrites
+// the active version in place; stale editors and pending AI tracked changes
+// are rejected to keep the assistant edit workflow consistent.
+documentsRouter.post("/:documentId/editor-save", requireAuth, async (req, res) => {
+  const userId = res.locals.userId as string;
+  const userEmail = res.locals.userEmail as string | undefined;
+  const { documentId } = req.params;
+  const db = createServerSupabase();
+
+  const baseVersionId =
+    typeof req.body?.base_version_id === "string" ? req.body.base_version_id : "";
+  const content = req.body?.content as TiptapNode | undefined;
+  if (!baseVersionId || !content || content.type !== "doc") {
+    return void res.status(400).json({ detail: "base_version_id and Tiptap doc content are required." });
+  }
+
+  const { data: doc } = await db
+    .from("documents")
+    .select("id, filename, file_type, current_version_id, user_id, project_id")
+    .eq("id", documentId)
+    .single();
+  if (!doc)
+    return void res.status(404).json({ detail: "Document not found" });
+  const access = await ensureDocAccess(doc, userId, userEmail, db);
+  if (!access.ok)
+    return void res.status(404).json({ detail: "Document not found" });
+  if (doc.file_type !== "docx" && doc.file_type !== "doc") {
+    return void res.status(400).json({ detail: "Only DOCX documents can be edited." });
+  }
+  if (doc.current_version_id !== baseVersionId) {
+    return void res.status(409).json({
+      detail: "This document changed while the editor was open. Reload the document before saving.",
+      code: "stale_version",
+      current_version_id: doc.current_version_id,
+    });
+  }
+
+  const { count: pendingCount } = await db
+    .from("document_edits")
+    .select("id", { count: "exact", head: true })
+    .eq("version_id", baseVersionId)
+    .eq("status", "pending");
+  if ((pendingCount ?? 0) > 0) {
+    return void res.status(409).json({
+      detail: "Resolve pending AI changes before saving manual edits.",
+      code: "pending_ai_edits",
+      pending_edit_count: pendingCount ?? 0,
+    });
+  }
+
+  const { data: baseVersion } = await db
+    .from("document_versions")
+    .select("id, display_name")
+    .eq("id", baseVersionId)
+    .eq("document_id", documentId)
+    .single();
+  if (!baseVersion)
+    return void res.status(404).json({ detail: "Base version not found" });
+
+  const buf = await tiptapJsonToDocxBuffer(content, doc.filename as string);
+  const versionSlug = crypto.randomUUID().replace(/-/g, "");
+  const key = versionStorageKey(userId, documentId, versionSlug, doc.filename as string);
+  await uploadFile(
+    key,
+    buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  );
+
+  let pdfStoragePath: string | null = null;
+  try {
+    const pdfBuf = await docxToPdf(buf);
+    const pdfKey = `converted-pdfs/${userId}/${documentId}/${versionSlug}.pdf`;
+    await uploadFile(
+      pdfKey,
+      pdfBuf.buffer.slice(pdfBuf.byteOffset, pdfBuf.byteOffset + pdfBuf.byteLength) as ArrayBuffer,
+      "application/pdf",
+    );
+    pdfStoragePath = pdfKey;
+  } catch (err) {
+    console.error(`[editor-save] DOCX→PDF conversion failed for ${doc.filename}:`, err);
+  }
+
+  const { data: maxRow } = await db
+    .from("document_versions")
+    .select("version_number")
+    .eq("document_id", documentId)
+    .in("source", VERSIONED_SOURCES)
+    .order("version_number", { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
+  const nextVersionNumber = ((maxRow?.version_number as number | null) ?? 1) + 1;
+
+  const { data: versionRow, error: verErr } = await db
+    .from("document_versions")
+    .insert({
+      document_id: documentId,
+      storage_path: key,
+      pdf_storage_path: pdfStoragePath,
+      source: "manual_edit",
+      version_number: nextVersionNumber,
+      display_name: (baseVersion.display_name as string | null) ?? (doc.filename as string),
+    })
+    .select("id, version_number, source, created_at, display_name")
+    .single();
+  if (verErr || !versionRow) {
+    console.error("[editor-save] insert failed", verErr);
+    return void res.status(500).json({ detail: "Failed to record manual edit version." });
+  }
+
+  await db
+    .from("documents")
+    .update({
+      current_version_id: versionRow.id,
+      size_bytes: buf.byteLength,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", documentId);
+
+  res.status(201).json({
+    ...versionRow,
+    document_id: documentId,
+    download_url: buildDownloadUrl(key, doc.filename as string),
+  });
+});
+
 // POST /single-documents/:documentId/versions
 // Upload a brand-new version of an existing document. The uploaded file
 // becomes the new current_version_id. display_name defaults to the
@@ -475,7 +799,7 @@ documentsRouter.post(
       .from("document_versions")
       .select("version_number")
       .eq("document_id", documentId)
-      .in("source", ["upload", "user_upload", "assistant_edit"])
+      .in("source", VERSIONED_SOURCES)
       .order("version_number", { ascending: false, nullsFirst: false })
       .limit(1)
       .maybeSingle();

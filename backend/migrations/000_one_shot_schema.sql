@@ -132,9 +132,25 @@ create table if not exists public.document_versions (
       'assistant_edit'::text,
       'user_accept'::text,
       'user_reject'::text,
+      'manual_edit'::text,
       'generated'::text
     ]))
 );
+
+alter table public.document_versions
+  drop constraint if exists document_versions_source_check;
+
+alter table public.document_versions
+  add constraint document_versions_source_check
+    check (source = any (array[
+      'upload'::text,
+      'user_upload'::text,
+      'assistant_edit'::text,
+      'user_accept'::text,
+      'user_reject'::text,
+      'manual_edit'::text,
+      'generated'::text
+    ]));
 
 create index if not exists document_versions_document_id_idx
   on public.document_versions(document_id, created_at desc);
