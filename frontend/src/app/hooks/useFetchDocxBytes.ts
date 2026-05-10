@@ -19,6 +19,7 @@ export interface FetchDocxResult {
 // key share a single in-flight request.
 const bytesCache = new Map<string, ArrayBuffer>();
 const inFlight = new Map<string, Promise<ArrayBuffer>>();
+const DOCX_FETCH_TIMEOUT_MS = 30_000;
 
 function cacheKey(
     documentId: string,
@@ -91,15 +92,42 @@ export function useFetchDocxBytes(
                     data: { session },
                 } = await supabase.auth.getSession();
                 const token = session?.access_token;
+                const controller = new AbortController();
+                const timeout = window.setTimeout(
+                    () => controller.abort(),
+                    DOCX_FETCH_TIMEOUT_MS,
+                );
                 // Stream bytes through the backend (avoids CORS on R2
                 // signed URLs).
-                const bin = await fetch(url, {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {},
-                });
-                if (!bin.ok) throw new Error(`HTTP ${bin.status}`);
-                const buf = await bin.arrayBuffer();
-                bytesCache.set(key, buf);
-                return buf;
+                try {
+                    const bin = await fetch(url, {
+                        headers: token
+                            ? { Authorization: `Bearer ${token}` }
+                            : {},
+                        signal: controller.signal,
+                    });
+                    if (!bin.ok) {
+                        const detail = await bin
+                            .json()
+                            .then((j) =>
+                                typeof j?.detail === "string"
+                                    ? j.detail
+                                    : null,
+                            )
+                            .catch(() => null);
+                        throw new Error(detail ?? `HTTP ${bin.status}`);
+                    }
+                    const buf = await bin.arrayBuffer();
+                    bytesCache.set(key, buf);
+                    return buf;
+                } catch (e) {
+                    if (e instanceof DOMException && e.name === "AbortError") {
+                        throw new Error("Document loading timed out.");
+                    }
+                    throw e;
+                } finally {
+                    window.clearTimeout(timeout);
+                }
             })();
         if (!inFlight.has(key)) inFlight.set(key, pending);
 

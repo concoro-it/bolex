@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MikeIcon } from "@/components/chat/mike-icon";
 import { useFetchDocxBytes } from "@/app/hooks/useFetchDocxBytes";
 import { supabase } from "@/lib/supabase";
@@ -10,6 +10,8 @@ import {
     highlightDocxQuote,
 } from "./highlightDocxQuote";
 import type { CitationQuote } from "./types";
+
+const DOCX_RENDER_TIMEOUT_MS = 30_000;
 
 interface Props {
     documentId: string;
@@ -212,6 +214,8 @@ export function DocxView({
     const containerRef = useRef<HTMLDivElement>(null);
     const lastScrollTopRef = useRef(0);
     const renderKeyRef = useRef(0);
+    const [renderBusy, setRenderBusy] = useState(false);
+    const [renderError, setRenderError] = useState<string | null>(null);
     // Ref-stabilize onReady and highlightEdit so the render effect only
     // re-fires when `bytes` actually change. Without this, any parent
     // re-render (e.g. clicking a new highlight) creates a new onReady
@@ -360,16 +364,31 @@ export function DocxView({
 
         (async () => {
             try {
+                setRenderBusy(true);
+                setRenderError(null);
                 const { renderAsync } = await import("docx-preview");
                 if (cancelled) return;
                 containerEl.innerHTML = "";
-                await renderAsync(bytes, containerEl, undefined, {
-                    inWrapper: true,
-                    ignoreWidth: false,
-                    ignoreHeight: false,
-                    renderChanges: true,
-                    experimental: true,
-                });
+                await Promise.race([
+                    renderAsync(bytes, containerEl, undefined, {
+                        inWrapper: true,
+                        ignoreWidth: false,
+                        ignoreHeight: false,
+                        renderChanges: true,
+                        experimental: true,
+                    }),
+                    new Promise<never>((_, reject) =>
+                        window.setTimeout(
+                            () =>
+                                reject(
+                                    new Error(
+                                        "Document rendering timed out.",
+                                    ),
+                                ),
+                            DOCX_RENDER_TIMEOUT_MS,
+                        ),
+                    ),
+                ]);
                 if (cancelled) return;
                 await tagWIdsOnRenderedDom(
                     containerEl,
@@ -418,6 +437,15 @@ export function DocxView({
                 });
             } catch (e) {
                 console.error("docx-preview render failed", e);
+                if (!cancelled) {
+                    setRenderError(
+                        e instanceof Error
+                            ? e.message
+                            : "Document could not be rendered.",
+                    );
+                }
+            } finally {
+                if (!cancelled) setRenderBusy(false);
             }
         })();
 
@@ -492,14 +520,16 @@ export function DocxView({
                 data-document-id={documentId}
                 data-version-id={versionId ?? ""}
             >
-                {loading && !bytes && (
+                {(loading && !bytes) || renderBusy ? (
                     <div className="flex h-full items-center justify-center">
                         <MikeIcon spin mike size={28} />
                     </div>
-                )}
-                {error && (
+                ) : null}
+                {(error || renderError) && (
                     <div className="flex h-full items-center justify-center">
-                        <p className="text-sm text-red-500">{error}</p>
+                        <p className="max-w-sm text-center text-sm text-red-500">
+                            {error ?? renderError}
+                        </p>
                     </div>
                 )}
                 <div ref={containerRef} className="docx-view-container" />

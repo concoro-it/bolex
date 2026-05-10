@@ -37,6 +37,7 @@ type TiptapNode = {
 };
 
 const VERSIONED_SOURCES = ["upload", "user_upload", "assistant_edit", "manual_edit"];
+const EDITOR_CONVERSION_TIMEOUT_MS = 45_000;
 
 function textAlignFromAttrs(attrs: Record<string, unknown> | null | undefined) {
   const value = typeof attrs?.textAlign === "string" ? attrs.textAlign : undefined;
@@ -47,6 +48,11 @@ function textAlignFromAttrs(attrs: Record<string, unknown> | null | undefined) {
 function collectPlainText(node: TiptapNode): string {
   if (typeof node.text === "string") return node.text;
   return (node.content ?? []).map(collectPlainText).join("");
+}
+
+function isZipDocx(bytes: ArrayBuffer): boolean {
+  const view = new Uint8Array(bytes, 0, Math.min(bytes.byteLength, 4));
+  return view[0] === 0x50 && view[1] === 0x4b;
 }
 
 async function tiptapJsonToDocxBuffer(content: TiptapNode, title: string): Promise<Buffer> {
@@ -431,6 +437,11 @@ documentsRouter.get("/:documentId/docx", requireAuth, async (req, res) => {
   const raw = await downloadFile(active.storage_path);
   if (!raw)
     return void res.status(404).json({ detail: "Document bytes not available" });
+  if (!isZipDocx(raw)) {
+    return void res.status(400).json({
+      detail: "This file is not a valid DOCX package and cannot be edited in the browser.",
+    });
+  }
 
   res.setHeader(
     "Content-Type",
@@ -557,13 +568,38 @@ documentsRouter.get("/:documentId/editor-content", requireAuth, async (req, res)
     .eq("version_id", active.id)
     .eq("status", "pending");
 
-  const mammoth = await import("mammoth");
-  const result = await mammoth.convertToHtml({
-    buffer: Buffer.from(raw),
-  });
+  let html = "";
+  try {
+    const mammoth = await import("mammoth");
+    const result = await Promise.race([
+      mammoth.convertToHtml({
+        buffer: Buffer.from(raw),
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("DOCX to editor conversion timed out.")),
+          EDITOR_CONVERSION_TIMEOUT_MS,
+        ),
+      ),
+    ]);
+    html = result.value;
+  } catch (err) {
+    console.error("[editor-content] conversion failed", {
+      documentId,
+      versionId: active.id,
+      filename: doc.filename,
+      err,
+    });
+    return void res.status(422).json({
+      detail:
+        err instanceof Error
+          ? err.message
+          : "Document could not be converted for editing.",
+    });
+  }
 
   res.json({
-    html: result.value || "<p></p>",
+    html: html || "<p></p>",
     base_version_id: active.id,
     version_number: active.version_number,
     pending_edit_count: pendingCount ?? 0,

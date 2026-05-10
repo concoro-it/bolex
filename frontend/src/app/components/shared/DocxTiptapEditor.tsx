@@ -29,6 +29,8 @@ type SavedVersion = {
     document_id: string;
 };
 
+const EDITOR_FETCH_TIMEOUT_MS = 45_000;
+
 interface Props {
     documentId: string;
     versionId?: string | null;
@@ -148,18 +150,53 @@ export function DocxTiptapEditor({
             const qs = versionId
                 ? `?version_id=${encodeURIComponent(versionId)}`
                 : "";
-            const resp = await fetch(
-                `${apiBase}/single-documents/${documentId}/editor-content${qs}`,
-                { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+            const controller = new AbortController();
+            const timeout = window.setTimeout(
+                () => controller.abort(),
+                EDITOR_FETCH_TIMEOUT_MS,
             );
-            const data = await resp.json().catch(() => ({}));
-            if (!resp.ok) {
-                throw new Error(data.detail ?? `HTTP ${resp.status}`);
+            let data: Record<string, unknown>;
+            try {
+                const resp = await fetch(
+                    `${apiBase}/single-documents/${documentId}/editor-content${qs}`,
+                    {
+                        headers: token
+                            ? { Authorization: `Bearer ${token}` }
+                            : {},
+                        signal: controller.signal,
+                    },
+                );
+                data = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    throw new Error(
+                        typeof data.detail === "string"
+                            ? data.detail
+                            : `HTTP ${resp.status}`,
+                    );
+                }
+            } catch (e) {
+                if (e instanceof DOMException && e.name === "AbortError") {
+                    throw new Error("Editor content loading timed out.");
+                }
+                throw e;
+            } finally {
+                window.clearTimeout(timeout);
             }
-            setBaseVersionId(data.base_version_id ?? null);
-            setPendingCount(data.pending_edit_count ?? 0);
-            editor.commands.setContent(data.html || "<p></p>");
-            editor.setEditable((data.pending_edit_count ?? 0) === 0);
+            const pendingEditCount =
+                typeof data.pending_edit_count === "number"
+                    ? data.pending_edit_count
+                    : 0;
+            setBaseVersionId(
+                typeof data.base_version_id === "string"
+                    ? data.base_version_id
+                    : null,
+            );
+            setPendingCount(pendingEditCount);
+            editor.commands.setContent(
+                typeof data.html === "string" ? data.html : "<p></p>",
+                { emitUpdate: false },
+            );
+            editor.setEditable(pendingEditCount === 0);
             setDirty(false);
             onDirtyChange?.(false);
         } catch (e) {
