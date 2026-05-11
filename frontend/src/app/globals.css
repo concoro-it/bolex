@@ -501,12 +501,14 @@
     outline: none;
     color: #111827;
     font-family: "Times New Roman", Times, serif;
-    font-size: 15px;
-    line-height: 1.65;
+    font-size: 16px;
+    line-height: 1.75;
+    counter-reset: legal-section;
 }
 
 .docx-tiptap-content p {
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.85rem;
+    text-align: justify;
 }
 
 .docx-tiptap-content h1,
@@ -518,15 +520,19 @@
 }
 
 .docx-tiptap-content h1 {
-    font-size: 1.45rem;
+    font-size: 1.55rem;
+    text-align: center;
+    text-transform: uppercase;
 }
 
 .docx-tiptap-content h2 {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.25rem;
 }
 
 .docx-tiptap-content h3 {
-    font-size: 1.05rem;
+    font-size: 1.08rem;
 }
 
 .docx-tiptap-content ul,
@@ -541,4 +547,18 @@
 
 .docx-tiptap-content ol {
     list-style: decimal;
+}
+
+.docx-tiptap-content blockquote {
+    margin: 1rem 0;
+    border-left: 3px solid #d1d5db;
+    padding: 0.2rem 0 0.2rem 1rem;
+    color: #374151;
+    font-style: italic;
+}
+
+.docx-tiptap-content hr {
+    margin: 1.5rem 0;
+    border: 0;
+    border-top: 1px solid #d1d5db;
 }

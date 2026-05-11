@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MikeIcon } from "@/components/chat/mike-icon";
+import { BolexLogoIcon } from "@/components/chat/mike-icon";
 import { useFetchDocxBytes } from "@/app/hooks/useFetchDocxBytes";
 import { supabase } from "@/lib/supabase";
 import { getApiBaseUrl } from "@/app/lib/apiBase";
@@ -522,7 +522,7 @@ export function DocxView({
             >
                 {(loading && !bytes) || renderBusy ? (
                     <div className="flex h-full items-center justify-center">
-                        <MikeIcon spin mike size={28} />
+                        <BolexLogoIcon spin size={28} />
                     </div>
                 ) : null}
                 {(error || renderError) && (

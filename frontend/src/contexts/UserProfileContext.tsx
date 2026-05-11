@@ -73,7 +73,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
                     messageCreditsUsed: 0,
                     creditsResetDate: defaultResetDateStr,
                     creditsRemaining: MONTHLY_CREDIT_LIMIT,
-                    tier: "Free",
+                    tier: "Ücretsiz",
                     tabularModel: "gemini-3-flash-preview",
                     claudeApiKey: null,
                     geminiApiKey: null,
@@ -106,7 +106,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
                     messageCreditsUsed: creditsUsed,
                     creditsResetDate: resetDate,
                     creditsRemaining: creditsRemaining,
-                    tier: data.tier || "Free",
+                    tier: data.tier || "Ücretsiz",
                     tabularModel:
                         data.tabular_model || "gemini-3-flash-preview",
                     claudeApiKey: data.claude_api_key ?? null,
@@ -144,7 +144,7 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
                 messageCreditsUsed: 0,
                 creditsResetDate: futureResetDate.toISOString(),
                 creditsRemaining: 999999, // temporarily unlimited
-                tier: "Free",
+                tier: "Ücretsiz",
                 tabularModel: "gemini-3-flash-preview",
                 claudeApiKey: null,
                 geminiApiKey: null,

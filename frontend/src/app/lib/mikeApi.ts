@@ -1,5 +1,5 @@
 /**
- * Mike API client — all requests to the Node.js backend.
+ * Bolex API client — all requests to the Node.js backend.
  * Attaches the Supabase auth token for user authentication.
  */
 
@@ -275,6 +275,16 @@ export async function renameDocumentVersion(
     );
 }
 
+export async function restoreDocumentVersion(
+    documentId: string,
+    versionId: string,
+): Promise<MikeDocumentVersion & { document_id: string }> {
+    return apiRequest<MikeDocumentVersion & { document_id: string }>(
+        `/single-documents/${documentId}/versions/${versionId}/restore`,
+        { method: "POST" },
+    );
+}
+
 export async function uploadProjectDocument(
     projectId: string,
     file: File,
@@ -292,6 +302,17 @@ export async function uploadProjectDocument(
     );
     if (!response.ok) throw new Error(await response.text());
     return response.json() as Promise<MikeDocument>;
+}
+
+export async function createEditorDocument(
+    projectId: string,
+    title: string,
+): Promise<MikeDocument> {
+    return apiRequest<MikeDocument>(`/projects/${projectId}/editor-documents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+    });
 }
 
 export async function uploadStandaloneDocument(

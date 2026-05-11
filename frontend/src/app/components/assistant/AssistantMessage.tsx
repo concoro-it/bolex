@@ -18,6 +18,7 @@ import { EditCard, applyOptimisticResolution } from "./EditCard";
 import { PreResponseWrapper } from "../shared/PreResponseWrapper";
 import { supabase } from "@/lib/supabase";
 import { getApiBaseUrl } from "@/app/lib/apiBase";
+import { getMcpToolStatus } from "@/app/lib/mcpToolStatus";
 
 /**
  * Card rendered above the per-edit EditCards when a message produced
@@ -994,7 +995,7 @@ interface Props {
     events?: AssistantEvent[];
     isStreaming?: boolean;
     isError?: boolean;
-    /** Human-readable error text rendered alongside the red Mike icon. */
+    /** Human-readable error text rendered alongside the red Bolex icon. */
     errorMessage?: string;
     annotations?: MikeCitationAnnotation[];
     onCitationClick?: (citation: MikeCitationAnnotation) => void;
@@ -1226,6 +1227,7 @@ export function AssistantMessage({
             );
         }
         if (event.type === "tool_call_start") {
+            const statusText = getMcpToolStatus(event.name);
             return (
                 <div
                     key={globalIdx}
@@ -1235,10 +1237,18 @@ export function AssistantMessage({
                         <div className="absolute bottom-0 w-[1px] bg-gray-300 top-[13px] left-[2.5px] h-[calc(100%+11px)]" />
                     )}
                     <div className="w-1.5 h-1.5 rounded-full border border-gray-400 border-t-transparent animate-spin shrink-0" />
-                    <span className="font-medium ml-2">Running</span>
-                    <span className="ml-1">
-                        {event.name ? `${event.name}...` : "tool..."}
-                    </span>
+                    {statusText ? (
+                        <span className="font-medium ml-2">
+                            {statusText}...
+                        </span>
+                    ) : (
+                        <>
+                            <span className="font-medium ml-2">Running</span>
+                            <span className="ml-1">
+                                {event.name ? `${event.name}...` : "tool..."}
+                            </span>
+                        </>
+                    )}
                 </div>
             );
         }

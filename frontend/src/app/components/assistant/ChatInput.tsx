@@ -221,7 +221,7 @@ export const ChatInput = forwardRef<ChatInputHandle, Props>(function ChatInput(
                         <textarea
                             ref={textareaRef}
                             rows={1}
-                            placeholder="Ask a question about your documents..."
+                            placeholder="Dökümanlarınız ile ilgili bir soru sorun..."
                             value={value}
                             onChange={handleChange}
                             onKeyDown={handleKeyDown}
@@ -250,7 +250,7 @@ export const ChatInput = forwardRef<ChatInputHandle, Props>(function ChatInput(
                                 >
                                     <FolderOpen className="h-3.5 w-3.5" />
                                     <span className="hidden sm:inline">
-                                        Projects
+                                        Projeler
                                     </span>
                                 </button>
                             )}
@@ -267,7 +267,7 @@ export const ChatInput = forwardRef<ChatInputHandle, Props>(function ChatInput(
                                         <Library className="h-3.5 w-3.5" />
                                     )}
                                     <span className="hidden sm:inline">
-                                        Workflows
+                                        Akışlar
                                     </span>
                                 </button>
                             )}
@@ -304,7 +304,7 @@ export const ChatInput = forwardRef<ChatInputHandle, Props>(function ChatInput(
                 open={docSelectorOpen}
                 onClose={() => setDocSelectorOpen(false)}
                 onSelect={handleAddDocsFromSelector}
-                breadcrumb={["Assistant", "Add Documents"]}
+                breadcrumb={["Asistan", "Dosya ekle"]}
             />
             <AssistantWorkflowModal
                 open={workflowModalOpen}

@@ -36,7 +36,7 @@ type TiptapNode = {
   content?: TiptapNode[];
 };
 
-const VERSIONED_SOURCES = ["upload", "user_upload", "assistant_edit", "manual_edit"];
+const VERSIONED_SOURCES = ["upload", "user_upload", "assistant_edit", "manual_edit", "generated"];
 const EDITOR_CONVERSION_TIMEOUT_MS = 45_000;
 
 function textAlignFromAttrs(attrs: Record<string, unknown> | null | undefined) {
@@ -149,6 +149,25 @@ async function tiptapJsonToDocxBuffer(content: TiptapNode, title: string): Promi
             });
           }
         }
+      } else if (node.type === "blockquote") {
+        for (const child of node.content ?? []) {
+          if (child.type === "paragraph" || child.type === "heading") {
+            pushParagraph(child);
+          }
+        }
+      } else if (node.type === "horizontalRule") {
+        children.push(
+          new Paragraph({
+            spacing: { before: 120, after: 120 },
+            children: [
+              new TextRun({
+                text: "______________________________",
+                font: FONT,
+                size: SIZE,
+              }),
+            ],
+          }),
+        );
       }
     }
   };
@@ -935,6 +954,83 @@ documentsRouter.patch(
       return void res.status(404).json({ detail: "Version not found" });
     }
     res.json(updated);
+  },
+);
+
+// POST /single-documents/:documentId/versions/:versionId/restore
+// Restores a previous version by creating a new manual_edit version that
+// points at the selected version's bytes. This preserves an audit trail
+// instead of moving current_version_id backwards invisibly.
+documentsRouter.post(
+  "/:documentId/versions/:versionId/restore",
+  requireAuth,
+  async (req, res) => {
+    const userId = res.locals.userId as string;
+    const userEmail = res.locals.userEmail as string | undefined;
+    const { documentId, versionId } = req.params;
+    const db = createServerSupabase();
+
+    const { data: doc } = await db
+      .from("documents")
+      .select("id, filename, user_id, project_id")
+      .eq("id", documentId)
+      .single();
+    if (!doc)
+      return void res.status(404).json({ detail: "Document not found" });
+    const access = await ensureDocAccess(doc, userId, userEmail, db);
+    if (!access.ok)
+      return void res.status(404).json({ detail: "Document not found" });
+
+    const { data: target } = await db
+      .from("document_versions")
+      .select("id, storage_path, pdf_storage_path, version_number, display_name")
+      .eq("id", versionId)
+      .eq("document_id", documentId)
+      .single();
+    if (!target)
+      return void res.status(404).json({ detail: "Version not found" });
+
+    const { data: maxRow } = await db
+      .from("document_versions")
+      .select("version_number")
+      .eq("document_id", documentId)
+      .in("source", VERSIONED_SOURCES)
+      .order("version_number", { ascending: false, nullsFirst: false })
+      .limit(1)
+      .maybeSingle();
+    const nextVersionNumber = ((maxRow?.version_number as number | null) ?? 1) + 1;
+    const targetLabel =
+      typeof target.version_number === "number"
+        ? `V${target.version_number}`
+        : "previous version";
+
+    const { data: restored, error: restoreErr } = await db
+      .from("document_versions")
+      .insert({
+        document_id: documentId,
+        storage_path: target.storage_path,
+        pdf_storage_path: target.pdf_storage_path ?? null,
+        source: "manual_edit",
+        version_number: nextVersionNumber,
+        display_name: `Restored to ${targetLabel}`,
+      })
+      .select("id, version_number, source, created_at, display_name")
+      .single();
+    if (restoreErr || !restored) {
+      return void res.status(500).json({
+        detail: restoreErr?.message ?? "Failed to restore version.",
+      });
+    }
+
+    await db
+      .from("documents")
+      .update({
+        current_version_id: restored.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", documentId);
+
+    res.status(201).json({ ...restored, document_id: documentId });
   },
 );
 

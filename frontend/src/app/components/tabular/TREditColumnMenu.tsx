@@ -283,7 +283,7 @@ export function TREditColumnMenu({
                             className="inline-flex items-center gap-1.5 text-xs text-red-500 transition-colors hover:text-red-600 disabled:text-red-300"
                         >
                             <Trash2 className="h-3.5 w-3.5" />
-                            Delete
+                            Sil
                         </button>
                         <button
                             type="button"

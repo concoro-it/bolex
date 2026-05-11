@@ -124,8 +124,8 @@ export function SidebarChatItem({ chat, isActive, onSelect, projectName }: Props
                                     setIsRenaming(true);
                                 }}
                             >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Rename
+                                <Pencil className="mr-1 h-4 w-4" />
+                                Yeniden adlandır
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={() => {
@@ -137,8 +137,8 @@ export function SidebarChatItem({ chat, isActive, onSelect, projectName }: Props
                                 }}
                                 className="text-red-600 focus:text-red-600"
                             >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
+                                <Trash2 className="mr-1 h-4 w-4 text-red-600" />
+                                Sil
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

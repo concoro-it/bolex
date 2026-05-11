@@ -64,7 +64,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <Pencil className="h-3.5 w-3.5" />
-                            Rename
+                            Yeniden adlandır
                         </button>
                     )}
                     {onUpdateCmNumber && (
@@ -73,7 +73,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <Hash className="h-3.5 w-3.5" />
-                            Edit CM No.
+                            Dosya numarasını değiştir
                         </button>
                     )}
                     {onDownload && (
@@ -82,7 +82,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <Download className="h-3.5 w-3.5" />
-                            Download
+                            İndir
                         </button>
                     )}
                     {onShowAllVersions && (
@@ -91,7 +91,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-left text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <History className="h-3.5 w-3.5 shrink-0" />
-                            Show all versions
+                            Tüm versiyonları göster
                         </button>
                     )}
                     {onUploadNewVersion && (
@@ -100,7 +100,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-left text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <Upload className="h-3.5 w-3.5 shrink-0" />
-                            Upload new version
+                            Yeni versiyon yükle
                         </button>
                     )}
                     {onRemoveFromFolder && (
@@ -109,7 +109,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-left text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <FolderMinus className="h-3.5 w-3.5 shrink-0" />
-                            Remove from subfolder
+                            Alt kategoriden kaldır
                         </button>
                     )}
                     {onUnhide && (
@@ -118,7 +118,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <Eye className="h-3.5 w-3.5" />
-                            Unhide
+                            Göster
                         </button>
                     )}
                     {onHide && (
@@ -127,7 +127,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <EyeOff className="h-3.5 w-3.5" />
-                            Hide
+                            Gizle
                         </button>
                     )}
                     {onDelete && (
@@ -137,7 +137,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
                         >
                             <Trash2 className="h-3.5 w-3.5" />
-                            Delete
+                            Sil
                         </button>
                     )}
                 </div>

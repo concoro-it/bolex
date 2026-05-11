@@ -2,55 +2,38 @@
 
 import React, { useId } from "react";
 
-const STOP_TRANSITION = "stop-color 220ms ease, stop-opacity 220ms ease";
-const FLOOD_TRANSITION = "flood-color 220ms ease, flood-opacity 220ms ease";
-
-type IconPalette = {
+type LogoPalette = {
+  fill: string;
   shadowColor: string;
   shadowOpacity: number;
-  fillStops: [string, string, string, string];
-  fillOpacities: [number, number, number, number];
-  specularStops: [number, number, number, number];
-  borderStops: [string, string, string];
-  borderOpacities: [number, number, number];
-  innerStops: [string, string, string, string];
-  innerOpacities: [number, number, number, number];
 };
 
-const DEFAULT_PALETTE: IconPalette = {
-  shadowColor: "#0f172a",
-  shadowOpacity: 0.24,
-  fillStops: ["#223477", "#314aa0", "#16265f", "#2c3f87"],
-  fillOpacities: [0.98, 0.9, 0.95, 0.98],
-  specularStops: [0.38, 0.16, 0.03, 0],
-  borderStops: ["#ffffff", "#6475b7", "#ffffff"],
-  borderOpacities: [0.28, 0.12, 0.18],
-  innerStops: ["#ffffff", "#9aa8df", "#17265c", "#ffffff"],
-  innerOpacities: [0, 0.12, 0.08, 0],
+type LogoIconProps = {
+  spin?: boolean;
+  loading?: boolean;
+  done?: boolean;
+  error?: boolean;
+  size?: number;
+  style?: React.CSSProperties;
+  className?: string;
 };
 
-const DONE_PALETTE: IconPalette = {
+const DEFAULT_PALETTE: LogoPalette = {
+  fill: "#1f1f1f",
+  shadowColor: "#1f1f1f",
+  shadowOpacity: 0.12,
+};
+
+const DONE_PALETTE: LogoPalette = {
+  fill: "#16834a",
   shadowColor: "#166534",
-  shadowOpacity: 0.18,
-  fillStops: ["#4ade80", "#86efac", "#22c55e", "#bbf7d0"],
-  fillOpacities: [0.95, 0.88, 0.9, 0.94],
-  specularStops: [0.68, 0.32, 0.03, 0],
-  borderStops: ["#f0fdf4", "#86efac", "#dcfce7"],
-  borderOpacities: [0.42, 0.24, 0.3],
-  innerStops: ["#ffffff", "#dcfce7", "#4ade80", "#ffffff"],
-  innerOpacities: [0, 0.16, 0.08, 0],
+  shadowOpacity: 0.14,
 };
 
-const ERROR_PALETTE: IconPalette = {
+const ERROR_PALETTE: LogoPalette = {
+  fill: "#dc2626",
   shadowColor: "#991b1b",
-  shadowOpacity: 0.18,
-  fillStops: ["#f87171", "#fca5a5", "#ef4444", "#fecaca"],
-  fillOpacities: [0.95, 0.88, 0.9, 0.94],
-  specularStops: [0.68, 0.32, 0.03, 0],
-  borderStops: ["#fef2f2", "#fca5a5", "#fee2e2"],
-  borderOpacities: [0.42, 0.24, 0.3],
-  innerStops: ["#ffffff", "#fee2e2", "#f87171", "#ffffff"],
-  innerOpacities: [0, 0.16, 0.08, 0],
+  shadowOpacity: 0.14,
 };
 
 const LOGO_PATHS = [
@@ -60,46 +43,110 @@ const LOGO_PATHS = [
   "M76 152V76H0C0 117.973 34.0269 152 76 152Z",
 ];
 
-function LogoParts({ ids }: { ids: Record<string, string> }) {
+function LogoParts({
+  fillId,
+  shadowId,
+}: {
+  fillId: string;
+  shadowId: string;
+}) {
   return (
-    <g filter={`url(#${ids.shadow})`}>
+    <g filter={`url(#${shadowId})`}>
       {LOGO_PATHS.map((d, index) => (
-        <g key={index}>
-          <path d={d} fill={`url(#${ids.glassFill})`} />
-          <path d={d} fill={`url(#${ids.innerLight})`} />
-          <path
-            d={d}
-            fill={`url(#${ids.specular})`}
-            clipPath={`url(#${ids.topClip})`}
-          />
-          <path
-            d={d}
-            fill="none"
-            stroke={`url(#${ids.glassBorder})`}
-            strokeWidth="1"
-          />
-        </g>
+        <path key={index} d={d} fill={`url(#${fillId})`} />
       ))}
     </g>
   );
 }
 
+function PulseLoader({
+  size = 24,
+  style,
+  className,
+}: {
+  size?: number;
+  style?: React.CSSProperties;
+  className?: string;
+}) {
+  return (
+    <span
+      className={["relative inline-grid shrink-0 place-items-center", className ?? ""]
+        .filter(Boolean)
+        .join(" ")}
+      style={{
+        width: size,
+        height: size,
+        ...style,
+      }}
+    >
+      <span
+        className="absolute rounded-full bg-[#1f1f1f] animate-[bolexPulse_1.8s_ease-in-out_infinite]"
+        style={{
+          width: size * 0.68,
+          height: size * 0.68,
+          boxShadow: "0 14px 34px rgba(31, 31, 31, 0.18)",
+        }}
+      />
+
+      <span
+        className="absolute rounded-full border border-[#1f1f1f]/15 animate-[bolexPulseRing_1.8s_ease-in-out_infinite]"
+        style={{
+          width: size * 0.68,
+          height: size * 0.68,
+        }}
+      />
+
+      <style jsx>{`
+        @keyframes bolexPulse {
+          0%,
+          100% {
+            transform: scale(0.8);
+            opacity: 0.9;
+            box-shadow: 0 10px 24px rgba(31, 31, 31, 0.12);
+          }
+
+          50% {
+            transform: scale(1);
+            opacity: 1;
+            box-shadow: 0 18px 42px rgba(31, 31, 31, 0.22);
+          }
+        }
+
+        @keyframes bolexPulseRing {
+          0% {
+            transform: scale(0.8);
+            opacity: 0.34;
+          }
+
+          55% {
+            transform: scale(1.22);
+            opacity: 0;
+          }
+
+          100% {
+            transform: scale(1.22);
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </span>
+  );
+}
+
 export function BolexLogoIcon({
   spin = false,
+  loading = false,
   done = false,
   error = false,
   size = 24,
   style,
-  mike: _mike,
-}: {
-  spin?: boolean;
-  done?: boolean;
-  error?: boolean;
-  size?: number;
-  style?: React.CSSProperties;
-  mike?: boolean;
-}) {
+  className,
+}: LogoIconProps) {
   const id = useId().replace(/:/g, "");
+
+  if (loading || spin) {
+    return <PulseLoader size={size} style={style} className={className} />;
+  }
 
   const palette = error
     ? ERROR_PALETTE
@@ -107,22 +154,15 @@ export function BolexLogoIcon({
       ? DONE_PALETTE
       : DEFAULT_PALETTE;
 
-  const ids = {
-    shadow: `${id}-b-shadow`,
-    glassFill: `${id}-b-glassFill`,
-    specular: `${id}-b-specular`,
-    glassBorder: `${id}-b-glassBorder`,
-    innerLight: `${id}-b-innerLight`,
-    topClip: `${id}-b-topClip`,
-  };
+  const fillId = `${id}-bolex-fill`;
+  const shadowId = `${id}-bolex-shadow`;
 
   return (
     <span
-      className="shrink-0 inline-block animate-[spin_3s_linear_infinite]"
-      style={{
-        animationPlayState: spin ? "running" : "paused",
-        ...style,
-      }}
+      className={["shrink-0 inline-block", className ?? ""]
+        .filter(Boolean)
+        .join(" ")}
+      style={style}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -130,191 +170,50 @@ export function BolexLogoIcon({
         width={size}
         height={size}
         fill="none"
-        style={{ display: "block" }}
+        style={{ display: "block", overflow: "visible" }}
       >
         <defs>
+          <linearGradient
+            id={fillId}
+            x1="18"
+            y1="0"
+            x2="134"
+            y2="152"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor={palette.fill} />
+            <stop offset="1" stopColor={palette.fill} />
+          </linearGradient>
+
           <filter
-            id={ids.shadow}
-            x="-20%"
-            y="-20%"
-            width="140%"
-            height="140%"
+            id={shadowId}
+            x="-12"
+            y="-10"
+            width="176"
+            height="176"
+            filterUnits="userSpaceOnUse"
+            colorInterpolationFilters="sRGB"
           >
             <feDropShadow
               dx="0"
-              dy="1.5"
-              stdDeviation="3"
+              dy="8"
+              stdDeviation="10"
               floodColor={palette.shadowColor}
               floodOpacity={palette.shadowOpacity}
-              style={{ transition: FLOOD_TRANSITION }}
             />
           </filter>
-
-          <linearGradient
-            id={ids.glassFill}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
-            <stop
-              offset="0%"
-              style={{
-                stopColor: palette.fillStops[0],
-                stopOpacity: palette.fillOpacities[0],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="30%"
-              style={{
-                stopColor: palette.fillStops[1],
-                stopOpacity: palette.fillOpacities[1],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="70%"
-              style={{
-                stopColor: palette.fillStops[2],
-                stopOpacity: palette.fillOpacities[2],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="100%"
-              style={{
-                stopColor: palette.fillStops[3],
-                stopOpacity: palette.fillOpacities[3],
-                transition: STOP_TRANSITION,
-              }}
-            />
-          </linearGradient>
-
-          <linearGradient
-            id={ids.specular}
-            x1="0%"
-            y1="0%"
-            x2="0%"
-            y2="100%"
-          >
-            <stop
-              offset="0%"
-              style={{
-                stopColor: "#ffffff",
-                stopOpacity: palette.specularStops[0],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="18%"
-              style={{
-                stopColor: "#ffffff",
-                stopOpacity: palette.specularStops[1],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="42%"
-              style={{
-                stopColor: "#ffffff",
-                stopOpacity: palette.specularStops[2],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="100%"
-              style={{
-                stopColor: "#ffffff",
-                stopOpacity: palette.specularStops[3],
-                transition: STOP_TRANSITION,
-              }}
-            />
-          </linearGradient>
-
-          <linearGradient
-            id={ids.glassBorder}
-            x1="0%"
-            y1="0%"
-            x2="0%"
-            y2="100%"
-          >
-            <stop
-              offset="0%"
-              style={{
-                stopColor: palette.borderStops[0],
-                stopOpacity: palette.borderOpacities[0],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="50%"
-              style={{
-                stopColor: palette.borderStops[1],
-                stopOpacity: palette.borderOpacities[1],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="100%"
-              style={{
-                stopColor: palette.borderStops[2],
-                stopOpacity: palette.borderOpacities[2],
-                transition: STOP_TRANSITION,
-              }}
-            />
-          </linearGradient>
-
-          <linearGradient
-            id={ids.innerLight}
-            x1="100%"
-            y1="0%"
-            x2="0%"
-            y2="100%"
-          >
-            <stop
-              offset="0%"
-              style={{
-                stopColor: palette.innerStops[0],
-                stopOpacity: palette.innerOpacities[0],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="40%"
-              style={{
-                stopColor: palette.innerStops[1],
-                stopOpacity: palette.innerOpacities[1],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="60%"
-              style={{
-                stopColor: palette.innerStops[2],
-                stopOpacity: palette.innerOpacities[2],
-                transition: STOP_TRANSITION,
-              }}
-            />
-            <stop
-              offset="100%"
-              style={{
-                stopColor: palette.innerStops[3],
-                stopOpacity: palette.innerOpacities[3],
-                transition: STOP_TRANSITION,
-              }}
-            />
-          </linearGradient>
-
-          <clipPath id={ids.topClip}>
-            <rect x="0" y="0" width="152" height="58" />
-          </clipPath>
         </defs>
 
-        <LogoParts ids={ids} />
+        <LogoParts fillId={fillId} shadowId={shadowId} />
       </svg>
     </span>
   );
 }
 
-export const MikeIcon = BolexLogoIcon;
+type MikeIconProps = LogoIconProps & {
+  mike?: boolean;
+};
+
+export function MikeIcon({ mike: _mike, ...props }: MikeIconProps) {
+  return <BolexLogoIcon {...props} />;
+}

@@ -12,7 +12,6 @@ import {
     Trash2,
 } from "lucide-react";
 import type { MikeDocument, MikeFolder } from "@/app/components/shared/types";
-import { VersionChip } from "@/app/components/shared/VersionChip";
 
 interface Props {
     projectName?: string | null;
@@ -300,7 +299,6 @@ export function ProjectExplorer({
                         >
                             <DocIcon fileType={doc.file_type} />
                             <span className="text-xs truncate">{doc.filename}</span>
-                            <VersionChip n={doc.latest_version_number} />
                         </li>
                     );
                 })}
@@ -391,7 +389,7 @@ export function ProjectExplorer({
                                 setContextMenu(null);
                             }}
                         >
-                            Rename
+                            Yeniden adlandır
                         </button>
                     )}
                     {contextMenu.folderId && onDeleteFolder && (

@@ -1,4 +1,5 @@
-const DEFAULT_MCP_SERVER_URL = "https://yargimcp.surucu.dev/mcp";
+import { getMcpServerUrlForTool } from "./tools";
+
 const REQUEST_TIMEOUT_MS = 30000;
 
 type JsonRpcResponse = {
@@ -19,13 +20,10 @@ function parseEventStream(text: string): unknown {
 }
 
 async function postMcp(
+    url: string,
     payload: Record<string, unknown>,
     sessionId?: string,
 ): Promise<{ data: unknown; sessionId?: string; status: number }> {
-    const url = (process.env.MCP_SERVER_URL || DEFAULT_MCP_SERVER_URL).replace(
-        /\/$/,
-        "",
-    );
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -63,18 +61,21 @@ async function postMcp(
     }
 }
 
-async function createSession(): Promise<string | undefined> {
+async function createSession(url: string): Promise<string | undefined> {
     const id = crypto.randomUUID();
-    const { data, sessionId } = await postMcp({
-        jsonrpc: "2.0",
-        id,
-        method: "initialize",
-        params: {
-            protocolVersion: "2024-11-05",
-            capabilities: {},
-            clientInfo: { name: "bolex-backend", version: "1.0.0" },
+    const { data, sessionId } = await postMcp(
+        url,
+        {
+            jsonrpc: "2.0",
+            id,
+            method: "initialize",
+            params: {
+                protocolVersion: "2024-11-05",
+                capabilities: {},
+                clientInfo: { name: "bolex-backend", version: "1.0.0" },
+            },
         },
-    });
+    );
 
     const rpc = data as JsonRpcResponse;
     if (rpc.error) {
@@ -90,8 +91,10 @@ export async function callMcpTool(
     const id = crypto.randomUUID();
 
     try {
-        const sessionId = await createSession();
+        const url = getMcpServerUrlForTool(toolName);
+        const sessionId = await createSession(url);
         const { data, status } = await postMcp(
+            url,
             {
                 jsonrpc: "2.0",
                 id,

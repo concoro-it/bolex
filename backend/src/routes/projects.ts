@@ -6,13 +6,73 @@ import {
   attachActiveVersionPaths,
   attachLatestVersionNumbers,
 } from "../lib/documentVersions";
-import { downloadFile, uploadFile, storageKey } from "../lib/storage";
+import { downloadFile, generatedDocKey, uploadFile, storageKey } from "../lib/storage";
 import { docxToPdf, convertedPdfKey } from "../lib/convert";
 import { checkProjectAccess } from "../lib/access";
 import { singleFileUpload } from "../lib/upload";
 
 export const projectsRouter = Router();
 const ALLOWED_TYPES = new Set(["pdf", "docx", "doc"]);
+
+function editorDocumentFilename(title: string): string {
+  const cleaned = title.trim().replace(/[\x00-\x1F\x7F\\/]/g, " ").replace(/\s+/g, " ");
+  const base = cleaned.slice(0, 120) || "Yeni Dokuman";
+  return /\.[a-z0-9]{1,6}$/i.test(base) ? base : `${base}.docx`;
+}
+
+async function createBlankEditorDocx(title: string): Promise<Buffer> {
+  const {
+    AlignmentType,
+    Document,
+    Packer,
+    Paragraph,
+    TextRun,
+  } = await import("docx");
+
+  const heading = title.trim() || "Yeni Dokuman";
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: {
+              top: 1440,
+              right: 1440,
+              bottom: 1440,
+              left: 1440,
+            },
+          },
+        },
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 360 },
+            children: [
+              new TextRun({
+                text: heading.replace(/\.[a-z0-9]{1,6}$/i, ""),
+                font: "Times New Roman",
+                size: 28,
+                bold: true,
+              }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            spacing: { after: 240, line: 360 },
+            children: [
+              new TextRun({
+                text: "",
+                font: "Times New Roman",
+                size: 24,
+              }),
+            ],
+          }),
+        ],
+      },
+    ],
+  });
+  return Packer.toBuffer(doc);
+}
 
 // GET /projects
 projectsRouter.get("/", requireAuth, async (req, res) => {
@@ -581,6 +641,103 @@ projectsRouter.patch("/:projectId/documents/:documentId/folder", requireAuth, as
     .select("*").single();
   if (error || !data) return void res.status(404).json({ detail: "Document not found" });
   res.json(data);
+});
+
+// POST /projects/:projectId/editor-documents — create a blank DOCX document
+// for the Tiptap editor. It is stored as a normal project document with V1.
+projectsRouter.post("/:projectId/editor-documents", requireAuth, async (req, res) => {
+  const userId = res.locals.userId as string;
+  const userEmail = res.locals.userEmail as string | undefined;
+  const { projectId } = req.params;
+  const rawTitle = typeof req.body?.title === "string" ? req.body.title : "";
+  const filename = editorDocumentFilename(rawTitle);
+  const db = createServerSupabase();
+
+  const access = await checkProjectAccess(projectId, userId, userEmail, db);
+  if (!access.ok) return void res.status(404).json({ detail: "Project not found" });
+
+  const buf = await createBlankEditorDocx(filename);
+
+  const { data: doc, error: docErr } = await db
+    .from("documents")
+    .insert({
+      project_id: projectId,
+      user_id: userId,
+      filename,
+      file_type: "docx",
+      size_bytes: buf.byteLength,
+      page_count: null,
+      status: "ready",
+    })
+    .select("*")
+    .single();
+  if (docErr || !doc) {
+    return void res.status(500).json({ detail: docErr?.message ?? "Failed to create editor document" });
+  }
+
+  try {
+    const docId = doc.id as string;
+    const key = generatedDocKey(userId, docId, filename);
+    await uploadFile(
+      key,
+      buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer,
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    );
+
+    let pdfStoragePath: string | null = null;
+    try {
+      const pdfBuf = await docxToPdf(buf);
+      const pdfKey = convertedPdfKey(userId, docId);
+      await uploadFile(
+        pdfKey,
+        pdfBuf.buffer.slice(pdfBuf.byteOffset, pdfBuf.byteOffset + pdfBuf.byteLength) as ArrayBuffer,
+        "application/pdf",
+      );
+      pdfStoragePath = pdfKey;
+    } catch (err) {
+      console.error(`[editor-documents] DOCX→PDF conversion failed for ${filename}:`, err);
+    }
+
+    const { data: versionRow, error: versionErr } = await db
+      .from("document_versions")
+      .insert({
+        document_id: docId,
+        storage_path: key,
+        pdf_storage_path: pdfStoragePath,
+        source: "generated",
+        version_number: 1,
+        display_name: filename,
+      })
+      .select("id, version_number, source, created_at, display_name")
+      .single();
+    if (versionErr || !versionRow) {
+      throw new Error(versionErr?.message ?? "Failed to create editor document version");
+    }
+
+    const { data: updated, error: updateErr } = await db
+      .from("documents")
+      .update({
+        current_version_id: versionRow.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", docId)
+      .select("*")
+      .single();
+    if (updateErr || !updated) {
+      throw new Error(updateErr?.message ?? "Failed to finalize editor document");
+    }
+
+    return void res.status(201).json({
+      ...updated,
+      current_version_id: versionRow.id,
+      latest_version_number: versionRow.version_number,
+      storage_path: key,
+      pdf_storage_path: pdfStoragePath,
+    });
+  } catch (err) {
+    await db.from("documents").delete().eq("id", doc.id);
+    return void res.status(500).json({ detail: err instanceof Error ? err.message : String(err) });
+  }
 });
 
 export async function handleDocumentUpload(

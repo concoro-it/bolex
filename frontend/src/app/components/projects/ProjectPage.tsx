@@ -1224,14 +1224,14 @@ export function ProjectPage({ projectId }: Props) {
                         className="flex items-center gap-1 text-xs px-3 font-medium text-gray-500 hover:text-gray-700 transition-colors"
                     >
                         <FolderPlus className="h-3.5 w-3.5" />
-                        Add Subfolder
+                        Yeni klasör
                     </button>
                     <button
                         onClick={() => setAddDocsOpen(true)}
                         className="flex items-center gap-1 text-xs px-3 font-medium text-gray-500 hover:text-gray-700 transition-colors"
                     >
                         <Upload className="h-3.5 w-3.5" />
-                        Add Documents
+                        Dosya ekle
                     </button>
                 </>
             )}
@@ -1248,7 +1248,7 @@ export function ProjectPage({ projectId }: Props) {
                             onClick={() => router.push("/projects")}
                             className="text-gray-400 hover:text-gray-600 transition-colors"
                         >
-                            Projects
+                            Projeler
                         </button>
                         <span className="text-gray-300">›</span>
                         {tab !== "documents" ? (
@@ -1303,11 +1303,11 @@ export function ProjectPage({ projectId }: Props) {
                             }`}
                         >
                             {creatingReview ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                            Tabular Review
+                            Tablolu İnceleme
                         </button>
                         {docs.length === 0 && (
                             <div className="pointer-events-none absolute right-0 top-full mt-1.5 z-10 hidden group-hover:flex items-center whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-lg">
-                                Upload a document first
+                                Önce ilk dosyanızı yükleyiniz.
                             </div>
                         )}
                     </div>
@@ -1351,13 +1351,13 @@ export function ProjectPage({ projectId }: Props) {
                                 />
                             </div>
                             <div className={`sticky left-8 z-[60] ${NAME_COL_W} bg-white pl-2 text-left`}>
-                                Name
+                                Ad
                             </div>
-                            <div className="ml-auto w-20 shrink-0 text-left">Type</div>
-                            <div className="w-24 shrink-0 text-left">Size</div>
-                            <div className="w-20 shrink-0 text-left">Version</div>
-                            <div className="w-32 shrink-0 text-left">Created</div>
-                            <div className="w-32 shrink-0 text-left">Updated</div>
+                            <div className="ml-auto w-20 shrink-0 text-left">Tür</div>
+                            <div className="w-24 shrink-0 text-left">Boyut</div>
+                            <div className="w-20 shrink-0 text-left">Versiyon</div>
+                            <div className="w-32 shrink-0 text-left">Oluşturulma tarihi</div>
+                            <div className="w-32 shrink-0 text-left">Güncellenme tarihi</div>
                             <div className="w-8 shrink-0" />
                         </div>
 
@@ -1374,7 +1374,7 @@ export function ProjectPage({ projectId }: Props) {
                                 className="flex-1 flex cursor-pointer flex-col items-center justify-center py-24 text-center"
                             >
                                 <Upload className="h-8 w-8 text-gray-200 mb-3" />
-                                <p className="text-sm text-gray-400">Drop PDF or DOCX files here</p>
+                                <p className="text-sm text-gray-400">Buraya bir PDF ya da Docx dosyası sürükleyin.</p>
                             </div>
                         ) : (
                             <div
@@ -1541,7 +1541,7 @@ export function ProjectPage({ projectId }: Props) {
                                                 setContextMenu(null);
                                             }}
                                         >
-                                            Delete folder
+                                            Klasörü sil
                                         </button>
                                     </>
                                 )}
@@ -1569,18 +1569,18 @@ export function ProjectPage({ projectId }: Props) {
                                 />
                             </div>
                             <div className={`sticky left-8 z-[60] ${NAME_COL_W} bg-white pl-2 text-left`}>
-                                Chats
+                                Chat
                             </div>
-                            <div className="ml-auto w-32 shrink-0 text-left">Created</div>
+                            <div className="ml-auto w-32 shrink-0 text-left">Oluşturulma tarihi</div>
                             <div className="w-8 shrink-0" />
                         </div>
                         {chats.length === 0 ? (
                             <div className="flex flex-col items-start py-24 w-full max-w-xs mx-auto">
                                 <MessageSquare className="h-8 w-8 text-gray-300 mb-4" />
-                                <p className="text-2xl font-medium font-serif text-gray-900">Assistant</p>
-                                <p className="mt-1 text-xs text-gray-400 max-w-xs">Ask questions and get answers grounded in the documents in this project.</p>
+                                <p className="text-2xl font-medium font-serif text-gray-900">Asistan</p>
+                                <p className="mt-1 text-xs text-gray-400 max-w-xs">Bu projedeki belgelere göre soru sorun, yanıt alın.</p>
                                 <button onClick={() => handleNewChat()} className="mt-4 inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700 transition-colors shadow-md">
-                                    + Create New
+                                    + Yeni Chat
                                 </button>
                             </div>
                         ) : (
@@ -1646,20 +1646,20 @@ export function ProjectPage({ projectId }: Props) {
                                 />
                             </div>
                             <div className={`sticky left-8 z-[60] ${NAME_COL_W} bg-white pl-2 text-left`}>
-                                Name
+                                Ad
                             </div>
-                            <div className="ml-auto w-24 shrink-0 text-left">Columns</div>
-                            <div className="w-24 shrink-0 text-left">Documents</div>
-                            <div className="w-32 shrink-0 text-left">Created</div>
+                            <div className="ml-auto w-24 shrink-0 text-left">Kolonlar</div>
+                            <div className="w-24 shrink-0 text-left">Dosyalar</div>
+                            <div className="w-32 shrink-0 text-left">Oluşturulma tarihi</div>
                             <div className="w-8 shrink-0" />
                         </div>
                         {projectReviews.length === 0 ? (
                             <div className="flex flex-col items-start py-24 w-full max-w-xs mx-auto">
                                 <Table2 className="h-8 w-8 text-gray-300 mb-4" />
-                                <p className="text-2xl font-medium font-serif text-gray-900">Tabular Reviews</p>
-                                <p className="mt-1 text-xs text-gray-400 max-w-xs">Extract data from project documents into tables using AI.</p>
+                                <p className="text-2xl font-medium font-serif text-gray-900">Tablolu İnceleme</p>
+                                <p className="mt-1 text-xs text-gray-400 max-w-xs">AI ile proje belgelerinden veri çıkarıp tablolara dönüştürün.</p>
                                 <button onClick={handleNewReview} disabled={creatingReview || docs.length === 0} className="mt-4 inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700 transition-colors shadow-md disabled:opacity-40">
-                                    + Create New
+                                    + Yeni oluştur
                                 </button>
                             </div>
                         ) : (

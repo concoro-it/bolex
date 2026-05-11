@@ -1,6 +1,8 @@
-# Mike
+# Bolex
 
-Open-source release containing the Mike frontend and backend.
+Open-source AI legal workspace for Turkish legal workflows.
+
+Bolex is based on Mike by Will Chen and is licensed under AGPL-3.0-only.
 
 ## Contents
 
@@ -18,6 +20,13 @@ npm install --prefix frontend
 ```
 
 Create local env files with the required Supabase, storage, model provider, and API URL values.
+
+For Turkish legal research MCP routing, the backend defaults to the public endpoints but can be overridden with:
+
+```bash
+MCP_SERVER_URL=https://yargimcp.surucu.dev/mcp
+MEVZUAT_MCP_SERVER_URL=https://mevzuat.surucu.dev/mcp
+```
 
 Run `backend/migrations/000_one_shot_schema.sql` in the Supabase SQL editor for a fresh database.
 
