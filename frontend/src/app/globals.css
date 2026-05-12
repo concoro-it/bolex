@@ -496,8 +496,102 @@
     }
 }
 
+.docx-editor-scroll {
+    background:
+        radial-gradient(circle at top left, rgba(15, 23, 42, 0.06), transparent 34rem),
+        linear-gradient(180deg, #eef1f5 0%, #e5e7eb 100%);
+}
+
+.docx-page-shell {
+    position: relative;
+    width: min(var(--docx-page-width), 100%);
+    min-height: var(--docx-page-min-height);
+    margin: 0 auto;
+    background:
+        repeating-linear-gradient(
+            180deg,
+            #ffffff 0,
+            #ffffff var(--docx-page-height),
+            #d8dde6 var(--docx-page-height),
+            #d8dde6 calc(var(--docx-page-height) + var(--docx-page-gap))
+        );
+    border-right: 1px solid #d8dee8;
+    border-left: 1px solid #d8dee8;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+}
+
+.docx-editor-frame {
+    position: relative;
+    z-index: 2;
+    min-height: calc(var(--docx-page-min-height) - var(--docx-page-margin) * 2);
+    padding: var(--docx-page-margin);
+}
+
+.docx-pagination-spacer {
+    position: relative;
+    display: block !important;
+    clear: both;
+    box-sizing: border-box;
+    width: auto;
+    height: var(--docx-spacer-height);
+    margin-right: calc(var(--docx-page-margin) * -1);
+    margin-left: calc(var(--docx-page-margin) * -1);
+    line-height: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            180deg,
+            #ffffff 0,
+            #ffffff calc(var(--docx-spacer-content-fill) + var(--docx-page-margin)),
+            #d8dde6 calc(var(--docx-spacer-content-fill) + var(--docx-page-margin)),
+            #d8dde6 calc(var(--docx-spacer-content-fill) + var(--docx-page-margin) + var(--docx-page-gap)),
+            #ffffff calc(var(--docx-spacer-content-fill) + var(--docx-page-margin) + var(--docx-page-gap)),
+            #ffffff 100%
+        );
+    color: #64748b;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.docx-pagination-spacer::before,
+.docx-pagination-spacer::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--docx-spacer-content-fill) + var(--docx-page-margin) + var(--docx-page-gap) / 2);
+    height: 1px;
+    background: rgba(100, 116, 139, 0.22);
+}
+
+.docx-pagination-spacer::before {
+    right: calc(50% + 58px);
+    left: 0;
+}
+
+.docx-pagination-spacer::after {
+    right: 0;
+    left: calc(50% + 58px);
+}
+
+.docx-pagination-spacer span {
+    position: absolute;
+    top: calc(var(--docx-spacer-content-fill) + var(--docx-page-margin) + var(--docx-page-gap) / 2);
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: #f8fafc;
+    padding: 3px 10px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
 .docx-tiptap-content {
-    min-height: 70vh;
+    min-height: var(--docx-page-content-height);
     outline: none;
     color: #111827;
     font-family: "Times New Roman", Times, serif;
@@ -561,4 +655,59 @@
     margin: 1.5rem 0;
     border: 0;
     border-top: 1px solid #d1d5db;
+}
+
+.docx-tiptap-content table {
+    width: 100%;
+    margin: 1rem 0 1.25rem;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.docx-tiptap-content th,
+.docx-tiptap-content td {
+    position: relative;
+    min-width: 1em;
+    border: 1px solid #9ca3af;
+    padding: 0.45rem 0.55rem;
+    vertical-align: top;
+}
+
+.docx-tiptap-content th {
+    background: #f3f4f6;
+    font-weight: 700;
+}
+
+.docx-tiptap-content th p,
+.docx-tiptap-content td p {
+    margin: 0 0 0.45rem;
+}
+
+.docx-tiptap-content th p:last-child,
+.docx-tiptap-content td p:last-child {
+    margin-bottom: 0;
+}
+
+.docx-tiptap-content .selectedCell::after {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    content: "";
+    background: rgba(59, 130, 246, 0.16);
+}
+
+.docx-tiptap-content .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: 0;
+    z-index: 4;
+    width: 4px;
+    background-color: #2563eb;
+    pointer-events: none;
+}
+
+.docx-tiptap-content.resize-cursor {
+    cursor: col-resize;
 }

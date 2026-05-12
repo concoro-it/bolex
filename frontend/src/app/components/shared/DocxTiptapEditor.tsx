@@ -1,16 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { EditorContent, useEditor, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Extension } from "@tiptap/core";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import {
+    Table,
+    TableCell,
+    TableHeader,
+    TableRow,
+} from "@tiptap/extension-table";
 import {
     AlignCenter,
     AlignJustify,
     AlignLeft,
     AlignRight,
     Bold,
+    FileText,
     Heading1,
     Heading2,
     Heading3,
@@ -23,6 +32,10 @@ import {
     Save,
     History,
     RotateCcw,
+    SquareSplitHorizontal,
+    SquareSplitVertical,
+    Table as TableIcon,
+    Trash2,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getApiBaseUrl } from "@/app/lib/apiBase";
@@ -31,6 +44,14 @@ import {
     restoreDocumentVersion,
     type MikeDocumentVersion,
 } from "@/app/lib/mikeApi";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type SavedVersion = {
     id: string;
@@ -40,6 +61,14 @@ type SavedVersion = {
 
 const EDITOR_FETCH_TIMEOUT_MS = 45_000;
 const HISTORY_GROUP_SIZE = 10;
+const PAGE_METRICS = {
+    width: 794,
+    height: 1123,
+    margin: 96,
+    gap: 28,
+};
+const PAGE_CONTENT_HEIGHT = PAGE_METRICS.height - PAGE_METRICS.margin * 2;
+const PAGE_SPACER_HEIGHT = PAGE_METRICS.margin * 2 + PAGE_METRICS.gap;
 
 interface Props {
     documentId: string;
@@ -78,6 +107,134 @@ const TextAlign = Extension.create({
                     },
                 },
             },
+        ];
+    },
+});
+
+const VisualPagination = Extension.create({
+    name: "visualPagination",
+    addProseMirrorPlugins() {
+        const key = new PluginKey<DecorationSet>("visualPagination");
+
+        return [
+            new Plugin<DecorationSet>({
+                key,
+                state: {
+                    init: () => DecorationSet.empty,
+                    apply(transaction, decorationSet) {
+                        const next = transaction.getMeta(key);
+                        if (next instanceof DecorationSet) return next;
+                        return decorationSet.map(transaction.mapping, transaction.doc);
+                    },
+                },
+                props: {
+                    decorations(state) {
+                        return key.getState(state);
+                    },
+                },
+                view(view) {
+                    let rafId: number | null = null;
+                    let lastSignature = "";
+
+                    const schedule = () => {
+                        if (rafId !== null) return;
+                        rafId = window.requestAnimationFrame(() => {
+                            rafId = null;
+
+                            const decorations: Decoration[] = [];
+                            const signatures: string[] = [];
+                            let nextBreak = PAGE_CONTENT_HEIGHT;
+                            let pageNumber = 2;
+
+                            view.state.doc.descendants((node, pos) => {
+                                if (view.state.doc.resolve(pos).depth !== 0) {
+                                    return false;
+                                }
+                                if (!node.isBlock || pos === 0) return false;
+                                const dom = view.nodeDOM(pos);
+                                if (!(dom instanceof HTMLElement)) return false;
+                                const blockBottom =
+                                    dom.offsetTop + dom.offsetHeight;
+                                if (blockBottom <= nextBreak) return false;
+
+                                const targetPage = pageNumber;
+                                const contentFillHeight = Math.max(
+                                    0,
+                                    nextBreak - dom.offsetTop,
+                                );
+                                const spacerHeight =
+                                    contentFillHeight + PAGE_SPACER_HEIGHT;
+                                signatures.push(`${pos}:${spacerHeight}`);
+                                decorations.push(
+                                    Decoration.widget(
+                                        pos,
+                                        () => {
+                                            const spacer =
+                                                document.createElement("div");
+                                            spacer.className =
+                                                "docx-pagination-spacer";
+                                            spacer.contentEditable = "false";
+                                            spacer.setAttribute(
+                                                "aria-hidden",
+                                                "true",
+                                            );
+                                            spacer.style.setProperty(
+                                                "--docx-spacer-height",
+                                                `${spacerHeight}px`,
+                                            );
+                                            spacer.style.setProperty(
+                                                "--docx-spacer-content-fill",
+                                                `${contentFillHeight}px`,
+                                            );
+
+                                            const label =
+                                                document.createElement("span");
+                                            label.textContent = `Sayfa ${targetPage}`;
+                                            spacer.appendChild(label);
+                                            return spacer;
+                                        },
+                                        {
+                                            key: `page-${targetPage}-${pos}`,
+                                            side: -1,
+                                        },
+                                    ),
+                                );
+
+                                pageNumber += 1;
+                                nextBreak += PAGE_CONTENT_HEIGHT + PAGE_SPACER_HEIGHT;
+                                return false;
+                            });
+
+                            const signature = signatures.join(":");
+                            if (signature === lastSignature) return;
+                            lastSignature = signature;
+
+                            view.dispatch(
+                                view.state.tr
+                                    .setMeta(
+                                        key,
+                                        DecorationSet.create(
+                                            view.state.doc,
+                                            decorations,
+                                        ),
+                                    )
+                                    .setMeta("addToHistory", false),
+                            );
+                        });
+                    };
+
+                    schedule();
+
+                    return {
+                        update: schedule,
+                        destroy() {
+                            if (rafId !== null) {
+                                window.cancelAnimationFrame(rafId);
+                            }
+                        },
+                    };
+                },
+            }),
         ];
     },
 });
@@ -212,6 +369,8 @@ export function DocxTiptapEditor({
     const saveTimerRef = useRef<number | null>(null);
     const saveAgainRef = useRef(false);
     const savingRef = useRef(false);
+    const editorFrameRef = useRef<HTMLDivElement | null>(null);
+    const [pageCount, setPageCount] = useState(1);
 
     useEffect(() => {
         onDirtyChangeRef.current = onDirtyChange;
@@ -226,7 +385,21 @@ export function DocxTiptapEditor({
         return () => window.clearInterval(id);
     }, [autoSave]);
 
-    const extensions = useMemo(() => [StarterKit, TextAlign], []);
+    const extensions = useMemo(
+        () => [
+            StarterKit,
+            TextAlign,
+            Table.configure({
+                resizable: true,
+                lastColumnResizable: false,
+            }),
+            TableRow,
+            TableHeader,
+            TableCell,
+            VisualPagination,
+        ],
+        [],
+    );
     const editor = useEditor({
         extensions,
         content: "<p></p>",
@@ -243,6 +416,48 @@ export function DocxTiptapEditor({
             setNotice(null);
         },
     });
+
+    const updatePageCount = useCallback(() => {
+        const proseMirror = editorFrameRef.current?.querySelector(
+            ".ProseMirror",
+        ) as HTMLElement | null;
+        const measuredHeight = proseMirror?.scrollHeight ?? 0;
+        let nextPageCount = 1;
+        let capacity = PAGE_CONTENT_HEIGHT;
+        while (measuredHeight > capacity + 1) {
+            nextPageCount += 1;
+            capacity += PAGE_CONTENT_HEIGHT + PAGE_SPACER_HEIGHT;
+        }
+        setPageCount((current) =>
+            current === nextPageCount ? current : nextPageCount,
+        );
+    }, []);
+
+    useEffect(() => {
+        if (!editor) return;
+
+        const update = () => window.requestAnimationFrame(updatePageCount);
+        update();
+        editor.on("update", update);
+        editor.on("selectionUpdate", update);
+        window.addEventListener("resize", update);
+
+        const proseMirror = editorFrameRef.current?.querySelector(".ProseMirror");
+        const resizeObserver =
+            typeof ResizeObserver !== "undefined"
+                ? new ResizeObserver(update)
+                : null;
+        if (resizeObserver && proseMirror) {
+            resizeObserver.observe(proseMirror);
+        }
+
+        return () => {
+            editor.off("update", update);
+            editor.off("selectionUpdate", update);
+            window.removeEventListener("resize", update);
+            resizeObserver?.disconnect();
+        };
+    }, [editor, updatePageCount]);
 
     const loadContent = useCallback(async () => {
         if (!editor) return;
@@ -306,6 +521,7 @@ export function DocxTiptapEditor({
                 { emitUpdate: false },
             );
             editor.setEditable(pendingEditCount === 0);
+            window.requestAnimationFrame(updatePageCount);
             setDirty(false);
             onDirtyChangeRef.current?.(false);
         } catch (e) {
@@ -313,7 +529,7 @@ export function DocxTiptapEditor({
         } finally {
             setLoading(false);
         }
-    }, [documentId, editor, versionId]);
+    }, [documentId, editor, updatePageCount, versionId]);
 
     useEffect(() => {
         void loadContent();
@@ -487,6 +703,10 @@ export function DocxTiptapEditor({
                         {subtitle}
                     </p>
                 </div>
+                <div className="mr-2 hidden items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-medium text-gray-600 md:inline-flex">
+                    <FileText className="h-3.5 w-3.5 text-gray-500" />
+                    <span>{pageCount} sayfa</span>
+                </div>
                 <ToolbarButton
                     label="Bold"
                     active={!!editor?.isActive("bold")}
@@ -572,6 +792,127 @@ export function DocxTiptapEditor({
                 >
                     <Minus className="h-4 w-4" />
                 </ToolbarButton>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            title="Table"
+                            aria-label="Table"
+                            disabled={!editor || pendingCount > 0}
+                            className={`inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                                editor?.isActive("table")
+                                    ? "border-gray-900 bg-gray-900 text-white"
+                                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
+                            }`}
+                        >
+                            <TableIcon className="h-4 w-4" />
+                            Table
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-52">
+                        <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-gray-400">
+                            Table
+                        </DropdownMenuLabel>
+                        <DropdownMenuItem
+                            disabled={!editor || pendingCount > 0}
+                            onClick={() =>
+                                editor
+                                    ?.chain()
+                                    .focus()
+                                    .insertTable({
+                                        rows: 3,
+                                        cols: 3,
+                                        withHeaderRow: true,
+                                    })
+                                    .run()
+                            }
+                        >
+                            <TableIcon className="h-4 w-4" />
+                            Insert table
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            disabled={
+                                !editor ||
+                                pendingCount > 0 ||
+                                !editor.can().addRowAfter()
+                            }
+                            onClick={() =>
+                                editor?.chain().focus().addRowAfter().run()
+                            }
+                        >
+                            <SquareSplitHorizontal className="h-4 w-4" />
+                            Add row
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            disabled={
+                                !editor ||
+                                pendingCount > 0 ||
+                                !editor.can().addColumnAfter()
+                            }
+                            onClick={() =>
+                                editor?.chain().focus().addColumnAfter().run()
+                            }
+                        >
+                            <SquareSplitVertical className="h-4 w-4" />
+                            Add column
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            disabled={
+                                !editor ||
+                                pendingCount > 0 ||
+                                !editor.can().toggleHeaderRow()
+                            }
+                            onClick={() =>
+                                editor?.chain().focus().toggleHeaderRow().run()
+                            }
+                        >
+                            <Heading3 className="h-4 w-4" />
+                            Toggle header row
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            disabled={
+                                !editor ||
+                                pendingCount > 0 ||
+                                !editor.can().deleteRow()
+                            }
+                            onClick={() =>
+                                editor?.chain().focus().deleteRow().run()
+                            }
+                        >
+                            <SquareSplitHorizontal className="h-4 w-4 text-red-600" />
+                            Delete row
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            disabled={
+                                !editor ||
+                                pendingCount > 0 ||
+                                !editor.can().deleteColumn()
+                            }
+                            onClick={() =>
+                                editor?.chain().focus().deleteColumn().run()
+                            }
+                        >
+                            <SquareSplitVertical className="h-4 w-4 text-red-600" />
+                            Delete column
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            variant="destructive"
+                            disabled={
+                                !editor ||
+                                pendingCount > 0 ||
+                                !editor.can().deleteTable()
+                            }
+                            onClick={() =>
+                                editor?.chain().focus().deleteTable().run()
+                            }
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            Delete table
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 <ToolbarButton
                     label="Align left"
                     disabled={!editor || pendingCount > 0}
@@ -735,14 +1076,31 @@ export function DocxTiptapEditor({
                     {error ?? notice}
                 </div>
             )}
-            <div className="min-h-0 flex-1 overflow-auto bg-gray-100 px-5 py-5">
+            <div className="docx-editor-scroll min-h-0 flex-1 overflow-auto px-5 py-6">
                 {loading ? (
                     <div className="flex h-full items-center justify-center">
                         <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
                     </div>
                 ) : (
-                    <div className="mx-auto min-h-full max-w-[816px] bg-white px-14 py-12 shadow-sm">
-                        <EditorContent editor={editor} />
+                    <div
+                        className="docx-page-shell"
+                        style={
+                            {
+                                "--docx-page-width": `${PAGE_METRICS.width}px`,
+                                "--docx-page-height": `${PAGE_METRICS.height}px`,
+                                "--docx-page-margin": `${PAGE_METRICS.margin}px`,
+                                "--docx-page-gap": `${PAGE_METRICS.gap}px`,
+                                "--docx-page-content-height": `${PAGE_CONTENT_HEIGHT}px`,
+                                "--docx-page-min-height": `${
+                                    PAGE_METRICS.height * pageCount +
+                                    PAGE_METRICS.gap * (pageCount - 1)
+                                }px`,
+                            } as CSSProperties
+                        }
+                    >
+                        <div ref={editorFrameRef} className="docx-editor-frame">
+                            <EditorContent editor={editor} />
+                        </div>
                     </div>
                 )}
             </div>

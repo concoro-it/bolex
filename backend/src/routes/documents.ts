@@ -58,11 +58,16 @@ function isZipDocx(bytes: ArrayBuffer): boolean {
 async function tiptapJsonToDocxBuffer(content: TiptapNode, title: string): Promise<Buffer> {
   const {
     AlignmentType,
+    BorderStyle,
     Document,
     HeadingLevel,
     Packer,
     Paragraph,
+    Table,
+    TableCell,
+    TableRow,
     TextRun,
+    WidthType,
   } = await import("docx");
 
   const FONT = "Times New Roman";
@@ -78,8 +83,17 @@ async function tiptapJsonToDocxBuffer(content: TiptapNode, title: string): Promi
     right: AlignmentType.RIGHT,
     justify: AlignmentType.JUSTIFIED,
   } as const;
+  const cellBorder = {
+    top: { style: BorderStyle.SINGLE, size: 1, color: "9CA3AF" },
+    bottom: { style: BorderStyle.SINGLE, size: 1, color: "9CA3AF" },
+    left: { style: BorderStyle.SINGLE, size: 1, color: "9CA3AF" },
+    right: { style: BorderStyle.SINGLE, size: 1, color: "9CA3AF" },
+  };
 
-  const inlineRuns = (nodes: TiptapNode[] | undefined): InstanceType<typeof TextRun>[] => {
+  const inlineRuns = (
+    nodes: TiptapNode[] | undefined,
+    opts?: { forceBold?: boolean },
+  ): InstanceType<typeof TextRun>[] => {
     const runs: InstanceType<typeof TextRun>[] = [];
     for (const node of nodes ?? []) {
       if (node.type === "hardBreak") {
@@ -93,40 +107,126 @@ async function tiptapJsonToDocxBuffer(content: TiptapNode, title: string): Promi
             text: node.text,
             font: FONT,
             size: SIZE,
-            bold: markTypes.has("bold"),
+            bold: opts?.forceBold || markTypes.has("bold"),
             italics: markTypes.has("italic"),
           }),
         );
         continue;
       }
-      runs.push(...inlineRuns(node.content));
+      runs.push(...inlineRuns(node.content, opts));
     }
     return runs;
   };
 
-  const children: InstanceType<typeof Paragraph>[] = [];
+  type DocChild = InstanceType<typeof Paragraph> | InstanceType<typeof Table>;
+  const children: DocChild[] = [];
+
+  const paragraphFromNode = (
+    node: TiptapNode,
+    opts?: { bullet?: boolean; ordered?: boolean; headingLevel?: number; forceBold?: boolean },
+  ) => {
+    const text = collectPlainText(node);
+    const runs = inlineRuns(node.content, { forceBold: opts?.forceBold });
+    const childRuns = runs.length ? runs : [new TextRun({ text, font: FONT, size: SIZE })];
+    if (!text.trim() && !opts?.headingLevel) {
+      return new Paragraph({ children: [new TextRun({ text: "" })] });
+    }
+    const align = textAlignFromAttrs(node.attrs);
+    return new Paragraph({
+      heading: opts?.headingLevel ? headingMap[Math.min(opts.headingLevel, 3)] : undefined,
+      bullet: opts?.bullet ? { level: 0 } : undefined,
+      numbering: opts?.ordered ? { reference: "ordered-list", level: 0 } : undefined,
+      alignment: alignmentMap[align],
+      spacing: { after: 120 },
+      children: childRuns,
+    });
+  };
 
   const pushParagraph = (
     node: TiptapNode,
     opts?: { bullet?: boolean; ordered?: boolean; headingLevel?: number },
   ) => {
-    const text = collectPlainText(node);
-    const runs = inlineRuns(node.content);
-    if (!text.trim() && !opts?.headingLevel) {
-      children.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
-      return;
+    children.push(paragraphFromNode(node, opts));
+  };
+
+  const cellParagraphs = (cell: TiptapNode, forceBold: boolean) => {
+    const paragraphs: InstanceType<typeof Paragraph>[] = [];
+    for (const child of cell.content ?? []) {
+      if (child.type === "paragraph") {
+        const text = collectPlainText(child);
+        const runs = inlineRuns(child.content, { forceBold });
+        paragraphs.push(
+          new Paragraph({
+            alignment: alignmentMap[textAlignFromAttrs(child.attrs)],
+            spacing: { after: 80 },
+            children: runs.length
+              ? runs
+              : [new TextRun({ text, font: FONT, size: SIZE, bold: forceBold })],
+          }),
+        );
+      } else if (child.type === "heading") {
+        const level =
+          typeof child.attrs?.level === "number" ? child.attrs.level : 1;
+        paragraphs.push(paragraphFromNode(child, { headingLevel: level }));
+      } else if (child.type === "bulletList" || child.type === "orderedList") {
+        for (const item of child.content ?? []) {
+          for (const paragraph of item.content ?? []) {
+            if (paragraph.type !== "paragraph") continue;
+            paragraphs.push(
+              paragraphFromNode(paragraph, {
+                bullet: child.type === "bulletList",
+                ordered: child.type === "orderedList",
+              }),
+            );
+          }
+        }
+      }
     }
-    const align = textAlignFromAttrs(node.attrs);
-    children.push(
-      new Paragraph({
-        heading: opts?.headingLevel ? headingMap[Math.min(opts.headingLevel, 3)] : undefined,
-        bullet: opts?.bullet ? { level: 0 } : undefined,
-        numbering: opts?.ordered ? { reference: "ordered-list", level: 0 } : undefined,
-        alignment: alignmentMap[align],
-        spacing: { after: 120 },
-        children: runs.length ? runs : [new TextRun({ text, font: FONT, size: SIZE })],
-      }),
-    );
+    if (paragraphs.length === 0) {
+      paragraphs.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
+    }
+    return paragraphs;
+  };
+
+  const cellWidth = (cell: TiptapNode) => {
+    const colwidth = cell.attrs?.colwidth;
+    if (
+      Array.isArray(colwidth) &&
+      typeof colwidth[0] === "number" &&
+      Number.isFinite(colwidth[0])
+    ) {
+      return { size: Math.max(720, Math.round(colwidth[0] * 15)), type: WidthType.DXA };
+    }
+    return undefined;
+  };
+
+  const buildTable = (node: TiptapNode) => {
+    const rows: InstanceType<typeof TableRow>[] = [];
+    for (const row of node.content ?? []) {
+      if (row.type !== "tableRow") continue;
+      const cells = (row.content ?? []).filter(
+        (cell) => cell.type === "tableCell" || cell.type === "tableHeader",
+      );
+      rows.push(
+        new TableRow({
+          tableHeader: cells.every((cell) => cell.type === "tableHeader"),
+          children: cells.map((cell) => {
+            const isHeader = cell.type === "tableHeader";
+            return new TableCell({
+              borders: cellBorder,
+              shading: isHeader ? { fill: "F3F4F6" } : undefined,
+              width: cellWidth(cell),
+              children: cellParagraphs(cell, isHeader),
+            });
+          }),
+        }),
+      );
+    }
+    if (rows.length === 0) return null;
+    return new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows,
+    });
   };
 
   const walkBlocks = (nodes: TiptapNode[] | undefined) => {
@@ -168,6 +268,12 @@ async function tiptapJsonToDocxBuffer(content: TiptapNode, title: string): Promi
             ],
           }),
         );
+      } else if (node.type === "table") {
+        const table = buildTable(node);
+        if (table) {
+          children.push(table);
+          children.push(new Paragraph({ text: "" }));
+        }
       }
     }
   };
