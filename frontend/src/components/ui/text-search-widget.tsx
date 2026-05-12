@@ -46,7 +46,7 @@ export function TextSearchWidget({
                     <Input
                         ref={searchInputRef}
                         autoFocus
-                        placeholder="Find"
+                        placeholder="Ara"
                         value={searchQuery}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="h-8 text-sm w-full pr-[80px] rounded-sm border-gray-200 bg-gray-100/50 focus-visible:ring-0 focus-visible:border-blue-600 placeholder:text-gray-500"
@@ -69,7 +69,7 @@ export function TextSearchWidget({
                     <span>
                         {matchCount > 0
                             ? `${currentMatchIdx + 1} of ${matchCount}`
-                            : "No results"}
+                            : "Sonuç yok"}
                     </span>
                     <div className="flex items-center gap-1">
                         <button

@@ -52,13 +52,13 @@ export function WFColumnViewModal({ col, onClose }: Props) {
                     <div>
                         <p className="text-sm font-medium text-gray-500 mb-2">İstem</p>
                         <div className="text-base text-gray-700 leading-relaxed font-serif prose prose-base max-w-none">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{col.prompt || "_No prompt defined._"}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{col.prompt || "_İstem tanımlanmadı._"}</ReactMarkdown>
                         </div>
                     </div>
                 </div>
                 <div className="border-t border-gray-100 px-6 py-4 flex justify-end shrink-0">
                     <button onClick={onClose} className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700">
-                        Close
+                        Kapat
                     </button>
                 </div>
             </div>

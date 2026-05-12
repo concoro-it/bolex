@@ -244,7 +244,7 @@ export default function WorkflowDetailPage({ params }: Props) {
     if (notFound || !workflow) {
         return (
             <div className="flex-1 flex items-center justify-center">
-                <p className="text-gray-400 font-serif">Workflow not found.</p>
+                <p className="text-gray-400 font-serif">Akış bulunamadı.</p>
             </div>
         );
     }

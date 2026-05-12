@@ -95,7 +95,7 @@ function SimpleProjectPicker({
                 <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-sm overflow-y-auto max-h-40">
                     {filtered.length === 0 ? (
                         <p className="px-3 py-3 text-xs text-gray-400 text-center">
-                            No projects found
+                            Proje bulunamadı
                         </p>
                     ) : (
                         filtered.map((p) => (
@@ -182,7 +182,7 @@ function AssistantPanel({ workflow }: { workflow: MikeWorkflow }) {
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-3 text-sm border border-gray-200 rounded-md text-gray-600 leading-relaxed font-serif bg-gray-50">
                 <MarkdownBody
-                    content={workflow.prompt_md ?? "_No prompt defined._"}
+                    content={workflow.prompt_md ?? "_İstem tanımlanmadı._"}
                 />
             </div>
         </div>
@@ -206,7 +206,7 @@ function TabularPanel({ workflow }: { workflow: MikeWorkflow }) {
             <div className="flex-1 overflow-y-auto border border-gray-200 rounded-md bg-gray-50">
                 {columns.length === 0 ? (
                     <p className="px-4 py-6 text-xs text-center text-gray-400">
-                        No columns defined
+                        Sütun tanımlanmadı
                     </p>
                 ) : (
                     columns.map((col) => {
@@ -263,7 +263,7 @@ function TabularPanel({ workflow }: { workflow: MikeWorkflow }) {
                                             <MarkdownBody
                                                 content={
                                                     col.prompt ||
-                                                    "_No prompt defined._"
+                                                    "_İstem tanımlanmadı._"
                                                 }
                                             />
                                         </div>
@@ -473,8 +473,8 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                 <span>›</span>
                                 <span>
                                     {wf.type === "assistant"
-                                        ? "New Chat"
-                                        : "New Review"}
+                                        ? "Yeni sohbet"
+                                        : "Yeni inceleme"}
                                 </span>
                             </>
                         )}
@@ -553,7 +553,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                     }}
                                     className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
                                 >
-                                    View Page
+                                    Sayfayı görüntüle
                                 </button>
                             ) : (
                                 <button
@@ -563,7 +563,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                     }}
                                     className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
                                 >
-                                    Edit
+                                    Düzenle
                                 </button>
                             )}
                             <button
@@ -583,7 +583,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                             {/* Add-on prompt */}
                             <div className="px-5 pb-3 shrink-0">
                                 <p className="text-xs font-medium text-gray-700 mb-2">
-                                    Message (optional)
+                                    Mesaj (isteğe bağlı)
                                 </p>
                                 <textarea
                                     rows={3}
@@ -599,7 +599,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                             {/* Toggle row */}
                             <div className="px-5 py-3 flex flex-col gap-2 shrink-0">
                                 <span className="text-xs font-medium text-gray-700">
-                                    Create in a project
+                                    Bir projede oluştur
                                 </span>
                                 <Toggle
                                     on={inProject}
@@ -616,7 +616,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                 <>
                                     <div className="px-5 pt-1 pb-1 shrink-0">
                                         <p className="text-xs font-medium text-gray-700">
-                                            Select project
+                                            Proje seç
                                         </p>
                                     </div>
                                     <div className="px-5 pb-2 shrink-0">
@@ -631,7 +631,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                 <>
                                     <div className="px-5 pt-1 pb-1 shrink-0">
                                         <p className="text-xs font-medium text-gray-700">
-                                            Select documents
+                                            Doküman seç
                                         </p>
                                     </div>
 
@@ -675,8 +675,8 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                             forceExpanded={!!q}
                                             emptyMessage={
                                                 q
-                                                    ? "No matches found"
-                                                    : "No documents yet"
+                                                    ? "Eşleşme bulunamadı"
+                                                    : "Henüz doküman yok"
                                             }
                                         />
                                     </div>
@@ -697,7 +697,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                 }
                                 className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
                             >
-                                {saving ? "Starting…" : "Start Chat"}
+                                {saving ? "Başlatılıyor…" : "Sohbeti başlat"}
                             </button>
                         </div>
                     </>
@@ -710,7 +710,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                             {/* Toggle stacked */}
                             <div className="px-5 pb-3 flex flex-col gap-2 shrink-0">
                                 <span className="text-xs font-medium text-gray-700">
-                                    Create in a project
+                                    Bir projede oluştur
                                 </span>
                                 <Toggle
                                     on={inProject}
@@ -728,7 +728,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                 <>
                                     <div className="px-5 pt-1 pb-1 shrink-0">
                                         <p className="text-xs font-medium text-gray-700">
-                                            Select Project
+                                            Proje seç
                                         </p>
                                     </div>
                                     <div className="px-5 pb-2 shrink-0">
@@ -749,9 +749,9 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
 
                             {/* Documents section */}
                             <div className="px-5 pt-3 pb-1 shrink-0">
-                                <p className="text-xs font-medium text-gray-700">
-                                    Select Documents
-                                </p>
+                                    <p className="text-xs font-medium text-gray-700">
+                                        Doküman seç
+                                    </p>
                             </div>
 
                             {/* Search */}
@@ -796,10 +796,10 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                     forceExpanded={!!q || inProject}
                                     emptyMessage={
                                         q
-                                            ? "No matches found"
+                                            ? "Eşleşme bulunamadı"
                                             : inProject
-                                              ? "No documents in this project"
-                                              : "No documents yet"
+                                              ? "Bu projede doküman yok"
+                                              : "Henüz doküman yok"
                                     }
                                 />
                             </div>
@@ -820,7 +820,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                 }
                                 className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
                             >
-                                {saving ? "Creating…" : "Create Review"}
+                                {saving ? "Oluşturuluyor…" : "İnceleme oluştur"}
                             </button>
                         </div>
                     </>

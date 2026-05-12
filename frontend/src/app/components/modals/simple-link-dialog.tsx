@@ -48,7 +48,7 @@ export function SimpleLinkDialog({
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-3xl font-light font-eb-garamond text-gray-900">
-                            Share Chat
+                            Sohbeti paylaş
                         </h2>
                     </div>
 
@@ -57,7 +57,7 @@ export function SimpleLinkDialog({
                         {/* Link display */}
                         <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                             <p className="text-sm text-gray-600 mb-2 font-medium">
-                                Share Link
+                                Bağlantıyı paylaş
                             </p>
                             <p className="text-sm text-gray-800 break-all font-mono">
                                 {shareUrl}
@@ -72,12 +72,12 @@ export function SimpleLinkDialog({
                             {linkCopied ? (
                                 <>
                                     <Check className="h-5 w-5" />
-                                    Copied!
+                                    Kopyalandı!
                                 </>
                             ) : (
                                 <>
                                     <Link2 className="h-5 w-5" />
-                                    Copy Link
+                                    Bağlantıyı kopyala
                                 </>
                             )}
                         </button>

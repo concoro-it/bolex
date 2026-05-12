@@ -24,7 +24,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
     const customInputRef = useRef<HTMLInputElement>(null);
 
     const isEditing = !!editWorkflow;
-    const isOthers = practice === "Others";
+    const isOthers = practice === "Diğer";
     const effectivePractice = isOthers ? (customPractice.trim() || null) : (practice || null);
 
     useEffect(() => {
@@ -34,7 +34,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
             const saved = editWorkflow.practice ?? "";
             const isKnown = (PRACTICE_OPTIONS as readonly string[]).includes(saved);
             if (!isKnown && saved) {
-                setPractice("Others");
+                setPractice("Diğer");
                 setCustomPractice(saved);
             } else {
                 setPractice(saved);
@@ -75,7 +75,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
             resetForm();
             onClose();
         } catch (err: unknown) {
-            setError((err as Error).message || `Failed to ${isEditing ? "update" : "create"} workflow`);
+            setError((err as Error).message || `Akış ${isEditing ? "güncellenemedi" : "oluşturulamadı"}`);
         } finally {
             setLoading(false);
         }
@@ -102,7 +102,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
                         <span>Akışlar</span>
                         <span>›</span>
-                        <span>{isEditing ? "Edit workflow" : "New workflow"}</span>
+                        <span>{isEditing ? "Akışı düzenle" : "Yeni akış"}</span>
                     </div>
                     <button
                         onClick={handleClose}
@@ -120,7 +120,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Workflow name"
+                            placeholder="Akış adı"
                             className="w-full text-2xl font-serif text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                             autoFocus
                         />
@@ -140,7 +140,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
                                         }`}
                                     >
                                         <MessageSquare className="h-3 w-3" />
-                                        Assistant
+                                        Asistan
                                     </button>
                                     <button
                                         type="button"
@@ -152,7 +152,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
                                         }`}
                                     >
                                         <Table2 className="h-3 w-3" />
-                                        Tabular
+                                        Tablolu
                                     </button>
                                 </div>
                             </div>
@@ -201,14 +201,14 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
                             onClick={handleClose}
                             className="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
                         >
-                            Cancel
+                            İptal
                         </button>
                         <button
                             type="submit"
                             disabled={!title.trim() || loading}
                             className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40 transition-colors"
                         >
-                            {loading ? (isEditing ? "Saving…" : "Creating…") : (isEditing ? "Save changes" : "Create workflow")}
+                            {loading ? (isEditing ? "Kaydediliyor…" : "Oluşturuluyor…") : (isEditing ? "Değişiklikleri kaydet" : "Akış oluştur")}
                         </button>
                     </div>
                 </form>

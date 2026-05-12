@@ -272,20 +272,19 @@ export function ProjectsOverview() {
                                     Projeler
                                 </p>
                                 <p className="mt-1 text-xs text-gray-400 max-w-xs">
-                                    Upload documents into projects and to
-                                    commence chats and tabular reviews with
-                                    them.
+                                    Dokümanları projelere yükleyin ve onlarla
+                                    sohbetler ile tablolu incelemeler başlatın.
                                 </p>
                                 <button
                                     onClick={() => setModalOpen(true)}
                                     className="mt-4 inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700 transition-colors shadow-md"
                                 >
-                                    + Create New
+                                    + Yeni oluştur
                                 </button>
                             </>
                         ) : (
                             <p className="text-sm text-gray-400">
-                                No {activeTab} projects
+                                {activeTab} proje yok
                             </p>
                         )}
                     </div>

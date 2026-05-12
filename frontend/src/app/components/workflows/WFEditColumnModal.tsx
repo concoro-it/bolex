@@ -175,7 +175,7 @@ export function WFEditColumnModal({ column, onClose, onSave, onDelete }: Props) 
                                             onClick={() => { update({ name: "", prompt: "", format: "text", tags: [], tagInput: "" }); setPresetsOpen(false); }}
                                             className="w-full px-3 py-2 text-left text-sm text-gray-400 hover:bg-gray-50 transition-colors border-b border-gray-100"
                                         >
-                                            No Preset
+                                                    Ön ayar yok
                                         </button>
                                         {PROMPT_PRESETS.map((preset) => (
                                             <button
@@ -291,7 +291,7 @@ export function WFEditColumnModal({ column, onClose, onSave, onDelete }: Props) 
                             onClick={onDelete}
                             className="rounded-lg px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
                         >
-                            Delete
+                            Sil
                         </button>
                         <div className="flex items-center gap-2">
                             <button
@@ -299,14 +299,14 @@ export function WFEditColumnModal({ column, onClose, onSave, onDelete }: Props) 
                                 onClick={onClose}
                                 className="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
                             >
-                                Cancel
+                            İptal
                             </button>
                             <button
                                 type="submit"
                                 disabled={!draft.name.trim() || !draft.prompt.trim()}
                                 className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40 transition-colors"
                             >
-                                Save changes
+                                Değişiklikleri kaydet
                             </button>
                         </div>
                     </div>

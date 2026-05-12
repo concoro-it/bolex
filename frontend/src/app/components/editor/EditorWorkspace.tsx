@@ -260,7 +260,7 @@ function EditorAssistantThread({
         >
             <div className="flex h-10 shrink-0 items-center gap-2 border-b border-gray-200 px-4">
                 <BolexLogoIcon size={16} />
-                <span className="text-xs text-gray-700">Project Assistant</span>
+                <span className="text-xs text-gray-700">Proje asistanı</span>
             </div>
 
             {messages.length === 0 ? (
@@ -485,7 +485,7 @@ export function EditorWorkspace({ projectId, documentId }: Props) {
     if (!project) {
         return (
             <div className="flex h-full items-center justify-center bg-white">
-                <p className="text-sm text-gray-400">Project not found</p>
+                <p className="text-sm text-gray-400">Proje bulunamadı</p>
             </div>
         );
     }
@@ -544,7 +544,7 @@ export function EditorWorkspace({ projectId, documentId }: Props) {
                                             void handleCreateDocument()
                                         }
                                         disabled={creatingDoc}
-                                        title="New editor document"
+                                        title="Yeni editör dokümanı"
                                         className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-40"
                                     >
                                         {creatingDoc ? (
@@ -557,7 +557,7 @@ export function EditorWorkspace({ projectId, documentId }: Props) {
                                         onClick={() =>
                                             setExplorerCollapsed(true)
                                         }
-                                        title="Collapse documents"
+                                        title="Dokümanları daralt"
                                         className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                                     >
                                         <ChevronLeft className="h-3.5 w-3.5" />
@@ -593,7 +593,7 @@ export function EditorWorkspace({ projectId, documentId }: Props) {
                         <div className="flex h-10 items-center justify-center border-b border-gray-200 px-1">
                             <button
                                 onClick={() => setExplorerCollapsed(false)}
-                                title="Expand documents"
+                                title="Dokümanları genişlet"
                                 className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                             >
                                 <ChevronRight className="h-3.5 w-3.5" />

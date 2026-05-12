@@ -14,13 +14,13 @@ import {
 import { getUserApiKeys } from "../lib/userSettings";
 import { checkProjectAccess } from "../lib/access";
 
-const PROJECT_SYSTEM_PROMPT_EXTRA = `PROJECT CONTEXT:
-You are operating within a project folder that contains a collection of legal documents the user has organised for a single matter. The user's questions will usually refer to one or more documents in this project — your job is to find the relevant files to work on. Use list_documents to see what is available and fetch_documents / read_document to pull in any documents you need before answering.
+const PROJECT_SYSTEM_PROMPT_EXTRA = `PROJE BAĞLAMI:
+Bir proje klasörü içinde çalışıyorsun; bu klasör, kullanıcının tek bir uyuşmazlık/mesele için düzenlediği bir grup hukuki doküman içerir. Kullanıcının soruları genellikle bu projedeki bir veya daha fazla dokümana referans verir - görevin, üzerinde çalışılması gereken ilgili dosyaları bulmaktır. Nelerin mevcut olduğunu görmek için 'list_documents' kullan ve yanıt vermeden önce ihtiyacın olan dokümanları çekmek için 'fetch_documents' / 'read_document' çağır.
 
-A document may currently be displayed in the user's side panel; when provided, treat it as context for the user's likely focus, but do NOT assume it is the only or definitive document the user is asking about. If the request could apply to other files in the project, identify and read those as well. Prefer coverage across the relevant project documents over an over-narrow reading of only the displayed one.
+Bir doküman şu anda kullanıcının yan panelinde görüntüleniyor olabilir; sağlandığında bunu kullanıcının muhtemel odağı için bağlam olarak kabul et, ancak kullanıcının sorduğu tek ya da kesin doküman olduğunu varsayma. Talep projedeki başka dosyalara da uygulanabiliyorsa, onları da tespit edip oku. Sadece ekranda görünen dosyayı aşırı dar yorumlamak yerine ilgili proje dokümanlarının tamamını kapsamayı tercih et.
 
-REPLICATING A DOCUMENT:
-When the user wants to use an existing project document as a starting point for a new file (e.g. "use this NDA as a template", "make me a copy of the SOW so I can edit it", "duplicate this and adapt it for company X"), call the replicate_document tool with the source doc_id. This creates a byte-for-byte copy as a new project document, returns a fresh doc_id slug, and shows a download/open card in the UI. Then call edit_document on the returned slug to make the user's requested changes — do NOT call generate_docx for cases where the user clearly wants the existing document's structure and formatting preserved.`;
+BELGE ÇOĞALTMA:
+Kullanıcı mevcut bir proje dokümanını yeni bir dosya için başlangıç noktası olarak kullanmak istediğinde (ör. "bu NDA'yı şablon olarak kullan", "SOW'un bir kopyasını yap, düzenleyeyim", "bunu çoğalt ve şirket X'e göre uyarla"), kaynak 'doc_id' ile 'replicate_document' aracını çağır. Bu, belgeyi birebir kopya olarak yeni bir proje dokümanı halinde oluşturur, yeni bir 'doc_id' slug döndürür ve UI'da bir indirme/açma kartı gösterir. Ardından kullanıcının istediği değişiklikleri yapmak için dönen slug üzerinde 'edit_document' çağır - kullanıcı mevcut dokümanın yapısını ve biçimini korumak istiyorsa 'generate_docx' kullanma.`;
 
 export const projectChatRouter = Router({ mergeParams: true });
 
@@ -133,7 +133,7 @@ projectChatRouter.post("/", requireAuth, async (req, res) => {
             const slug = slugByDocumentId.get(d.document_id);
             return slug ? `- ${slug}: ${d.filename}` : `- ${d.filename}`;
         });
-        systemPromptExtra += `\n\nUSER-ATTACHED DOCUMENTS FOR THIS TURN:\nThe user has attached the following document(s) directly to their latest message. Treat these as the primary focus of the request unless their message clearly says otherwise.\n${lines.join("\n")}`;
+        systemPromptExtra += `\n\nBU TUR İÇİN KULLANICI EKLERİ:\nKullanıcı son mesajına aşağıdaki doküman(lar)ı doğrudan ekledi. Mesajı açıkça aksi söylemiyorsa bunları talebin ana odağı olarak kabul et.\n${lines.join("\n")}`;
     }
 
     const apiMessages = buildMessages(

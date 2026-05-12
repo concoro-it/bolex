@@ -135,7 +135,7 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
                                     shouldAnimate ? "sidebar-fade-in" : ""
                                 }`}
                             >
-                                Bolex
+                                    Bolex
                             </span>
                         </Link>
                     </div>
@@ -192,7 +192,7 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
                             shouldAnimate ? "sidebar-fade-in" : ""
                         }`}
                     >
-                        <span>Geçmiş mesajlar</span>
+                                <span>Geçmiş sohbetler</span>
                         <ChevronDown
                             className={`h-3.5 w-3.5 transition-transform ${historyCollapsed ? "-rotate-90" : ""}`}
                         />
@@ -295,7 +295,7 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
                             <div className="absolute bottom-full left-0 m-1 bg-white rounded-lg shadow-lg border border-gray-200 p-1 z-50 w-62 whitespace-nowrap">
                                 <button
                                     onClick={() => {
-                                        router.push("/account");
+                                            router.push("/account");
                                         setIsDropdownOpen(false);
                                     }}
                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 rounded-md"

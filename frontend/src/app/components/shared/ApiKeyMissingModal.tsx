@@ -17,10 +17,10 @@ export function ApiKeyMissingModal({ open, onClose, provider, message }: Props) 
     const router = useRouter();
     if (!open) return null;
 
-    const providerName = provider ? providerLabel(provider) : "this provider";
+    const providerName = provider ? providerLabel(provider) : "bu sağlayıcı";
     const body =
         message ??
-        `You haven't added a ${providerName} API key yet. Add one in your account settings to use this model.`;
+        `Henüz ${providerName} API anahtarı eklemediniz. Bu modeli kullanmak için hesap ayarlarınızdan ekleyin.`;
 
     const handleGoToAccount = () => {
         onClose();
@@ -40,7 +40,7 @@ export function ApiKeyMissingModal({ open, onClose, provider, message }: Props) 
                     <div className="flex items-center gap-2">
                         <AlertTriangle className="h-4 w-4 text-amber-600" />
                         <h2 className="text-base font-medium text-gray-900">
-                            API key required
+                            API anahtarı gerekli
                         </h2>
                     </div>
                     <button
@@ -62,13 +62,13 @@ export function ApiKeyMissingModal({ open, onClose, provider, message }: Props) 
                         onClick={onClose}
                         className="rounded-lg px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
                     >
-                        Cancel
+                        İptal
                     </button>
                     <button
                         onClick={handleGoToAccount}
                         className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
                     >
-                        Go to account settings
+                        Hesap ayarlarına git
                     </button>
                 </div>
             </div>

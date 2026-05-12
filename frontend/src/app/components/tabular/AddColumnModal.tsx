@@ -196,7 +196,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-2">
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <span>Tabular Review</span>
+                        <span>Tablolu İnceleme</span>
                         <span>›</span>
                         <span>{isEditing ? "Edit column" : "New column"}</span>
                     </div>
@@ -251,7 +251,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                                         : {}),
                                                 });
                                             }}
-                                            placeholder="Column name"
+                                            placeholder="Sütun adı"
                                             className="flex-1 text-2xl font-serif text-gray-800 placeholder-gray-400 focus:outline-none bg-transparent"
                                             autoFocus={index === 0}
                                         />
@@ -264,7 +264,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                                         : index,
                                                 )
                                             }
-                                            title="Column presets"
+                                            title="Sütun ön ayarları"
                                             className="mt-1.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
                                         >
                                             <ChevronDown
@@ -281,7 +281,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                                     }}
                                                     className="w-full px-3 py-2 text-left text-sm text-gray-400 hover:bg-gray-50 transition-colors border-b border-gray-100"
                                                 >
-                                                    No Preset
+                                                    Ön ayar yok
                                                 </button>
                                                 {PROMPT_PRESETS.map(
                                                     (preset) => (
@@ -380,7 +380,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                 {column.format === "tag" && (
                                     <div className="mt-3">
                                         <label className="text-sm font-medium text-gray-500">
-                                            Tags
+                                            Etiketler
                                         </label>
                                         <div className="mt-1 flex flex-wrap gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 focus-within:border-gray-400">
                                             {column.tags.map((tag, tagIdx) => (
@@ -422,12 +422,12 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                                     handleTagKeyDown(e, index)
                                                 }
                                                 onBlur={() => commitTag(index)}
-                                                placeholder="Add tag…"
+                                                placeholder="Etiket ekle…"
                                                 className="min-w-[80px] flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none"
                                             />
                                         </div>
                                         <p className="mt-1 text-xs text-gray-400">
-                                            Press Enter or comma to add a tag.
+                                            Etiket eklemek için Enter veya virgül kullanın.
                                         </p>
                                     </div>
                                 )}
@@ -435,7 +435,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                 {/* Prompt */}
                                 <div className="mt-4 flex items-center justify-between">
                                     <label className="text-sm font-medium text-gray-500">
-                                        Prompt
+                                        İstem
                                     </label>
                                     <button
                                         type="button"
@@ -453,7 +453,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                         ) : (
                                             <Plus className="h-4 w-4" />
                                         )}
-                                        Auto-Generate Prompt
+                                        İstemi otomatik oluştur
                                     </button>
                                 </div>
                                 <textarea
@@ -464,7 +464,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                             prompt: e.target.value,
                                         })
                                     }
-                                    placeholder="Write the analysis prompt — describe what Bolex should extract from each document for this column…"
+                                    placeholder="Analiz istemini yazın — bu sütun için Bolex'in her dokümandan ne çıkarması gerektiğini açıklayın…"
                                     className="mt-2 w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-gray-400 focus:outline-none bg-transparent resize-none leading-relaxed"
                                 />
                             </div>
@@ -477,7 +477,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                 className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-900"
                             >
                                 <Plus className="h-4 w-4" />
-                                Add another column
+                                Başka sütun ekle
                             </button>
                         )}
                     </div>
@@ -491,7 +491,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                     onClick={onDelete}
                                     className="rounded-lg px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
                                 >
-                                    Delete
+                                    Sil
                                 </button>
                             )}
                         </div>
@@ -501,7 +501,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                 onClick={handleClose}
                                 className="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
                             >
-                                Cancel
+                                İptal
                             </button>
                             <button
                                 type="submit"
@@ -510,7 +510,7 @@ export function AddColumnModal({ open, existingCount, onClose, onAdd, editingCol
                                 )}
                                 className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40 transition-colors"
                             >
-                                {isEditing ? "Save changes" : "Add columns"}
+                                {isEditing ? "Değişiklikleri kaydet" : "Sütun ekle"}
                             </button>
                         </div>
                     </div>

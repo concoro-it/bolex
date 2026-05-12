@@ -35,9 +35,9 @@ const NAME_COL_W = "w-[300px] shrink-0";
 
 const TABS: { id: Tab; label: string }[] = [
     { id: "all", label: "Tüm akışlar" },
-    { id: "builtin", label: "Built-in" },
-    { id: "custom", label: "Custom" },
-    { id: "hidden", label: "Hidden" },
+    { id: "builtin", label: "Yerleşik" },
+    { id: "custom", label: "Özel" },
+    { id: "hidden", label: "Gizli" },
 ];
 
 export function WorkflowList() {
@@ -201,9 +201,9 @@ export function WorkflowList() {
 
     const getTypeMeta = (type: MikeWorkflow["type"]) =>
         type === "tabular"
-            ? { label: "Tabular", Icon: Table2, className: "text-violet-700" }
+            ? { label: "Tablolu", Icon: Table2, className: "text-violet-700" }
             : {
-                  label: "Assistant",
+                  label: "Asistan",
                   Icon: MessageSquare,
                   className: "text-blue-700",
               };
@@ -220,9 +220,9 @@ export function WorkflowList() {
             >
                 {typeFilter
                     ? typeFilter === "tabular"
-                        ? "Tabular"
-                        : "Assistant"
-                    : "Filter by type"}
+                        ? "Tablolu"
+                        : "Asistan"
+                    : "Türe göre filtrele"}
                 <ChevronDown className="h-3 w-3" />
             </button>
             {typeFilterOpen && (
@@ -278,7 +278,7 @@ export function WorkflowList() {
                         : "text-gray-500 hover:text-gray-700"
                 }`}
             >
-                {practiceFilter ?? "Filter by practice"}
+                {practiceFilter ?? "Uygulama alanına göre filtrele"}
                 <ChevronDown className="h-3 w-3" />
             </button>
             {practiceFilterOpen && (
@@ -326,7 +326,7 @@ export function WorkflowList() {
                         onClick={() => setActionsOpen((v) => !v)}
                         className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors"
                     >
-                        Actions
+                        İşlemler
                         <ChevronDown className="h-3.5 w-3.5" />
                     </button>
                     {actionsOpen && (
@@ -336,14 +336,14 @@ export function WorkflowList() {
                                     onClick={handleBulkUnhide}
                                     className="w-full px-3 py-1.5 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
                                 >
-                                    Unhide
+                                    Gizlemeyi kaldır
                                 </button>
                             ) : (
                                 <button
                                     onClick={handleBulkRemove}
                                     className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-red-50 transition-colors"
                                 >
-                                    Delete
+                                    Sil
                                 </button>
                             )}
                         </div>
@@ -402,8 +402,8 @@ export function WorkflowList() {
                                 />
                             )}
                         </div>
-                        <div className={`sticky left-8 z-[60] ${NAME_COL_W} bg-white pl-2 text-left`}>
-                            Name
+                    <div className={`sticky left-8 z-[60] ${NAME_COL_W} bg-white pl-2 text-left`}>
+                            Ad
                         </div>
                         <div className="ml-auto w-28 shrink-0">Tür</div>
                         <div className="w-40 shrink-0">Uygulama alanı</div>
@@ -444,15 +444,15 @@ export function WorkflowList() {
                                         Özel akışlar
                                     </p>
                                     <p className="mt-1 text-xs text-gray-400 text-left">
-                                        Build reusable prompts and tabular
-                                        review templates tailored to your
-                                        practice.
+                                        Tekrarlanabilir istemler ve
+                                        uygulamanıza uygun tablolu inceleme
+                                        şablonları oluşturun.
                                     </p>
                                     <button
                                         onClick={() => setNewModalOpen(true)}
                                         className="mt-4 inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700 transition-colors shadow-md"
                                     >
-                                        + Create New
+                                        + Yeni oluştur
                                     </button>
                                 </>
                             ) : activeTab === "hidden" ? (
@@ -462,9 +462,9 @@ export function WorkflowList() {
                                         Gizli akışlar
                                     </p>
                                     <p className="mt-1 text-xs text-gray-400 text-left">
-                                        Built-in workflows you've hidden will
-                                        appear here. You can unhide them at any
-                                        time.
+                                        Gizlediğiniz yerleşik akışlar burada
+                                        görünür. İstediğiniz zaman gizlemeyi
+                                        kaldırabilirsiniz.
                                     </p>
                                 </>
                             ) : (
@@ -474,8 +474,9 @@ export function WorkflowList() {
                                         Akışlar
                                     </p>
                                     <p className="mt-1 text-xs text-gray-400 text-left">
-                                        Automate document analysis with reusable
-                                        prompts and tabular review templates.
+                                        Tekrarlanabilir istemler ve tablolu
+                                        inceleme şablonlarıyla doküman
+                                        analizini otomatikleştirin.
                                     </p>
                                 </>
                             )}
@@ -547,7 +548,7 @@ export function WorkflowList() {
                                         <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 truncate max-w-full">
                                             <User className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                                             <span className="truncate">
-                                                {wf.shared_by_name ?? "Shared"}
+                                            {wf.shared_by_name ?? "Paylaşılan"}
                                             </span>
                                         </span>
                                     )}

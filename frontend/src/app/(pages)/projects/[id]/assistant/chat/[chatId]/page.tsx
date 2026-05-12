@@ -815,7 +815,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                         onClick={() => router.push("/projects")}
                         className="text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                        Projects
+                        Projeler
                     </button>
                     <span className="text-gray-300">›</span>
                     {project ? (
@@ -842,12 +842,12 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                         }
                         className="text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                        Assistant
+                        Asistan
                     </button>
                     <span className="text-gray-300">›</span>
                     {chatLoaded ? (
                         <span className="text-gray-900 truncate max-w-xs">
-                            {chatTitle ?? "Untitled New Chat"}
+                            {chatTitle ?? "Adsız yeni sohbet"}
                         </span>
                     ) : (
                         <div className="h-6 w-40 rounded bg-gray-100 animate-pulse" />
@@ -857,7 +857,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                     <button
                         onClick={handleNewChat}
                         disabled={creatingChat}
-                        title="New chat"
+                        title="Yeni sohbet"
                         className="flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-900 transition-colors disabled:opacity-40"
                     >
                         {creatingChat ? (
@@ -869,7 +869,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                     <button
                         onClick={handleDeleteChat}
                         disabled={deletingChat}
-                        title="Delete chat"
+                        title="Sohbeti sil"
                         className="flex items-center justify-center p-1.5 text-gray-500 hover:text-red-600 transition-colors disabled:opacity-40"
                     >
                         {deletingChat ? (
@@ -913,8 +913,8 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                         >
                             {/* Explorer header */}
                             <div className="h-10 flex items-center justify-between px-3 border-b border-gray-200 shrink-0">
-                                <span className="text-xs text-gray-700">
-                                    Explorer
+                                    <span className="text-xs text-gray-700">
+                                    Gezgin
                                 </span>
                                 <div className="flex items-center gap-1">
                                     <input
@@ -936,7 +936,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                                             fileInputRef.current?.click()
                                         }
                                         disabled={uploading}
-                                        title="Upload documents"
+                                        title="Doküman yükle"
                                         className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-40"
                                     >
                                         {uploading ? (
@@ -949,7 +949,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                                         onClick={() =>
                                             setExplorerCollapsed(true)
                                         }
-                                        title="Collapse explorer"
+                                        title="Gezgini daralt"
                                         className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                                     >
                                         <ChevronLeft className="h-3.5 w-3.5" />
@@ -984,7 +984,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                                 {explorerDragOver && (
                                     <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
                                         <p className="text-xs text-blue-500 font-medium">
-                                            Drop to upload
+                                            Yüklemek için bırak
                                         </p>
                                     </div>
                                 )}
@@ -1013,7 +1013,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                         <div className="h-10 flex items-center justify-center border-b border-gray-200 shrink-0 px-1">
                             <button
                                 onClick={() => setExplorerCollapsed(false)}
-                                title="Expand explorer"
+                                title="Gezgini genişlet"
                                 className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                             >
                                 <ChevronRight className="h-3.5 w-3.5" />
@@ -1031,7 +1031,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                     >
                         {tabs.length === 0 ? (
                             <span className="px-4 self-center text-xs text-gray-700">
-                                Document Viewer
+                                Doküman görüntüleyici
                             </span>
                         ) : (
                             tabs.map((tab) => {
@@ -1164,7 +1164,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                                                     className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-800"
                                                 >
                                                     <Pencil className="h-3.5 w-3.5" />
-                                                    Edit
+                                            Düzenle
                                                     {dirtyManualEditDocIds.has(
                                                         activeTab.documentId,
                                                     )
@@ -1230,12 +1230,12 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                             <div className="flex items-center justify-center h-full px-8 bg-gray-100">
                                 <div className="text-center space-y-3">
                                     <p className="font-serif text-gray-700 text-xl">
-                                        Click on a document to display here.
+                                        Bir dokümana tıklayın; burada görüntülensin.
                                     </p>
                                     <p className="font-serif text-base text-gray-500">
-                                        Pro tip: Drag a document from the
-                                        Project Explorer to the Assistant to
-                                        direct it to read or edit.
+                                        İpucu: Bir dokümanı Gezginden Asistana
+                                        sürükleyerek okumasını ya da düzenlemesini
+                                        isteyebilirsiniz.
                                     </p>
                                 </div>
                             </div>
@@ -1255,7 +1255,7 @@ export default function ProjectAssistantChatPage({ params }: Props) {
                     <div className="h-10 flex items-center gap-2 px-4 border-b border-gray-200 shrink-0">
                         <BolexLogoIcon size={16} />
                         <span className="text-xs text-gray-700">
-                            Project Assistant
+                            Proje asistanı
                         </span>
                     </div>
 

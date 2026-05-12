@@ -508,7 +508,7 @@ export function DocxView({
                         type="button"
                         onClick={() => onWarningDismiss?.()}
                         className="text-amber-600 hover:text-amber-900"
-                        aria-label="Dismiss warning"
+                        aria-label="Uyarıyı kapat"
                     >
                         ×
                     </button>

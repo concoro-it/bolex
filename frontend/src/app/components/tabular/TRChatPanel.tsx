@@ -557,8 +557,8 @@ function HistoryDropdown({
                     <p className="px-3 py-2 text-xs text-gray-400">
                         {chats.filter((c) => c.id !== currentChatId).length ===
                         0
-                            ? "No previous chats."
-                            : "No matches."}
+                            ? "Önceki sohbet yok."
+                            : "Eşleşme yok."}
                     </p>
                 ) : (
                     filtered.map((chat) => {

@@ -71,7 +71,7 @@ export function SelectAssistantProjectModal({ open, onClose }: Props) {
                         onClick={onClose}
                         className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100"
                     >
-                        Cancel
+                        İptal
                     </button>
                     <button
                         onClick={handleContinue}
@@ -81,7 +81,7 @@ export function SelectAssistantProjectModal({ open, onClose }: Props) {
                         {creating ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
-                            "Continue"
+                            "Devam et"
                         )}
                     </button>
                 </div>

@@ -156,7 +156,7 @@ export function PeopleModal({
             setError(
                 e instanceof Error
                     ? e.message
-                    : "Couldn't add the member. Try again.",
+                    : "Üye eklenemedi. Tekrar deneyin.",
             );
         } finally {
             setBusy(null);
@@ -177,7 +177,7 @@ export function PeopleModal({
             setError(
                 e instanceof Error
                     ? e.message
-                    : "Couldn't remove the member. Try again.",
+                    : "Üye kaldırılamadı. Tekrar deneyin.",
             );
         } finally {
             setBusy(null);

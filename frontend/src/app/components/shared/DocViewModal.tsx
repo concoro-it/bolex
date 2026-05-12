@@ -67,7 +67,7 @@ export function DocViewModal({
                                 className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
                             >
                                 <Pencil className="h-3.5 w-3.5" />
-                                Edit
+                                Düzenle
                             </button>
                         )}
                         <button

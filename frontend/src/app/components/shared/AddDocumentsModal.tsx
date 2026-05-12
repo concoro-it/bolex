@@ -109,7 +109,7 @@ export function AddDocumentsModal({
                     );
                     onSelect([...alreadyHere, ...assigned], projectId);
                 } catch (err) {
-                    console.error("Failed to assign documents:", err);
+                    console.error("Dokümanlar atanamadı:", err);
                 } finally {
                     setUploading(false);
                 }
@@ -147,7 +147,7 @@ export function AddDocumentsModal({
         const blocked = ids.length - owned.length;
         if (owned.length === 0 && blocked > 0) {
             setOwnerOnlyAction(
-                "delete these documents — only the document creator can delete a document",
+                "bu dokümanları sil — yalnızca dokümanı oluşturan kişi silebilir",
             );
             return;
         }
@@ -155,7 +155,7 @@ export function AddDocumentsModal({
         try {
             await Promise.all(owned.map((id) => deleteDocument(id)));
         } catch (err) {
-            console.error("Delete failed:", err);
+            console.error("Silme başarısız:", err);
             return;
         }
         invalidateDirectoryCache();
@@ -167,7 +167,7 @@ export function AddDocumentsModal({
         });
         if (blocked > 0) {
             setOwnerOnlyAction(
-                `delete ${blocked} of the selected documents — only the document creator can delete a document`,
+                `seçili dokümanların ${blocked} tanesini sil — yalnızca dokümanı oluşturan kişi silebilir`,
             );
         }
     }
@@ -190,7 +190,7 @@ export function AddDocumentsModal({
                 setSelectedIds((prev) => new Set([...prev, d.id])),
             );
         } catch (err) {
-            console.error("Upload failed:", err);
+            console.error("Yükleme başarısız:", err);
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
@@ -279,27 +279,27 @@ export function AddDocumentsModal({
                             ) : (
                                 <Upload className="h-3.5 w-3.5" />
                             )}
-                            {uploading ? "Uploading…" : "Upload"}
+                            {uploading ? "Yükleniyor…" : "Yükle"}
                         </button>
                     </div>
                     <div className="flex items-center gap-2">
                         {selectedIds.size > 0 && (
                             <span className="text-xs text-gray-400">
-                                {selectedIds.size} selected
+                                {selectedIds.size} seçili
                             </span>
                         )}
                         <button
                             onClick={onClose}
                             className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100"
                         >
-                            Cancel
+                            İptal
                         </button>
                         <button
                             onClick={handleConfirm}
                             disabled={selectedIds.size === 0 || uploading}
                             className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40"
                         >
-                            {uploading ? "Saving…" : "Confirm"}
+                            {uploading ? "Kaydediliyor…" : "Onayla"}
                         </button>
                     </div>
                 </div>

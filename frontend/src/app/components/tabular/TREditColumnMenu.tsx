@@ -136,7 +136,7 @@ export function TREditColumnMenu({
                 >
                     <div className="flex items-center justify-between mb-3">
                         <p className="text-sm font-medium text-gray-800">
-                            Edit Column
+                            Sütunu düzenle
                         </p>
                         <button
                             type="button"
@@ -147,7 +147,7 @@ export function TREditColumnMenu({
                         </button>
                     </div>
                     <label className="text-xs font-medium text-gray-800">
-                        Label
+                        Etiket
                     </label>
                     <input
                         type="text"
@@ -264,7 +264,7 @@ export function TREditColumnMenu({
                                 ) : (
                                     <Plus className="h-3 w-3" />
                                 )}
-                                Auto-generate
+                                İstemi otomatik oluştur
                             </button>
                         </div>
                         <textarea

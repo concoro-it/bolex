@@ -57,8 +57,8 @@ export function AddDocButton({ onSelectDoc, onBrowseAll, selectedDocIds = [] }: 
                                 ? "text-black hover:bg-gray-100"
                                 : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"
                         } ${isOpen ? "bg-gray-100" : ""}`}
-                        title="Dosyaları ekle"
-                        aria-label="Dosyaları ekle"
+                        title="Doküman ekle"
+                        aria-label="Doküman ekle"
                     >
                         {selectedDocIds.length > 0 ? (
                             <span className="font-medium tabular-nums">{selectedDocIds.length}</span>
@@ -69,8 +69,8 @@ export function AddDocButton({ onSelectDoc, onBrowseAll, selectedDocIds = [] }: 
                         )}
                         <span className="hidden sm:inline">
                             {selectedDocIds.length === 1
-                                ? "Dosya"
-                                : "Dosyalar"}
+                                ? "Doküman"
+                                : "Dokümanlar"}
                         </span>
                     </button>
                 </DropdownMenuTrigger>
@@ -93,7 +93,7 @@ export function AddDocButton({ onSelectDoc, onBrowseAll, selectedDocIds = [] }: 
                             <Upload className="h-4 w-4 mr-2 text-gray-500" />
                         )}
                         <span className="text-sm">
-                            {uploading ? "Yükleniyor…" : "Dosya yükle"}
+                            {uploading ? "Yükleniyor…" : "Doküman yükle"}
                         </span>
                     </DropdownMenuItem>
                     <DropdownMenuItem

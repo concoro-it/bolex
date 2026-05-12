@@ -294,7 +294,7 @@ chatRouter.post("/:chatId/generate-title", requireAuth, async (req, res) => {
         );
         const titleText = await completeText({
             model: title_model,
-            user: `Generate a concise title (3–6 words) for a chat in an AI Legal Platform that starts with this message. The title should describe the topic or document — do NOT include words like "Legal Assistant", "AI", "Chat", or any similar prefix. Return only the title, no quotes or punctuation.\n\nMessage: ${message.slice(0, 500)}`,
+            user: `Bu mesajla başlayan bir hukuk platformu sohbeti için kısa bir başlık (3-6 kelime) oluştur. Başlık konuya ya da dokümana ilişkin olsun; "Hukuk Asistanı", "AI", "Sohbet" gibi ön ekler kullanma. Yalnızca başlığı döndür; tırnak işareti veya noktalama kullanma.\n\nMesaj: ${message.slice(0, 500)}`,
             maxTokens: 64,
             apiKeys: api_keys,
         });

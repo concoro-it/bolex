@@ -797,7 +797,7 @@ export function useAssistantChat({
                     replaceChatId(
                         chatId,
                         finalChatId,
-                        message.content.trim().slice(0, 120) || "New Chat",
+                        message.content.trim().slice(0, 120) || "Yeni sohbet",
                     );
                 }
                 setCurrentChatId(finalChatId);
@@ -831,7 +831,7 @@ export function useAssistantChat({
                         const updated = [...prev];
                         const events = last.events ?? [];
                         const idx = findLastContentIndex(events);
-                        const cancelText = "Cancelled by user";
+                        const cancelText = "Kullanıcı tarafından iptal edildi";
                         if (idx >= 0) {
                             const newEvents = [...events];
                             const existing = newEvents[idx] as {
@@ -841,7 +841,7 @@ export function useAssistantChat({
                             newEvents[idx] = {
                                 type: "content",
                                 text: existing.text
-                                    ? `${existing.text}\n\nCancelled by user`
+                                    ? `${existing.text}\n\nKullanıcı tarafından iptal edildi`
                                     : cancelText,
                             };
                             updated[updated.length - 1] = {
@@ -865,7 +865,7 @@ export function useAssistantChat({
                             role: "assistant",
                             content: "",
                             events: [
-                                { type: "content", text: "Cancelled by user" },
+                                { type: "content", text: "Kullanıcı tarafından iptal edildi" },
                             ],
                         },
                     ];

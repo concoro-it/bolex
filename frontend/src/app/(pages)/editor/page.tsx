@@ -111,7 +111,7 @@ export default function EditorLandingPage() {
                         className="flex h-8 items-center gap-1.5 px-2 text-sm text-gray-500 transition-colors hover:text-gray-900"
                     >
                         <Plus className="h-4 w-4" />
-                        Project
+                        Proje
                     </button>
                 </div>
             </div>
@@ -143,7 +143,7 @@ export default function EditorLandingPage() {
                     <div className="mx-auto flex max-w-xs flex-col items-start py-24">
                         <FilePenLine className="mb-4 h-8 w-8 text-gray-300" />
                         <p className="font-serif text-2xl font-medium text-gray-900">
-                            Editor
+                            Editör
                         </p>
                         <p className="mt-1 text-xs text-gray-400">
                             Önce bir proje oluşturun, sonra bu proje altında

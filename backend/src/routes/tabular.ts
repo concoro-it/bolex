@@ -21,22 +21,22 @@ import {
 function formatPromptSuffix(format?: string, tags?: string[]): string {
     switch (format) {
         case "bulleted_list":
-            return ' The "summary" field in your JSON response must be a markdown bulleted list only — no prose. Format: each item on its own line, prefixed with "* " (asterisk + single space), e.g.\n* First item\n* Second item\n* Third item';
+            return ' JSON yanıtındaki "summary" alanı yalnızca markdown madde işaretli liste olmalı - düz yazı olmamalı. Biçim: her madde kendi satırında ve "* " (yıldız + tek boşluk) ile başlamalıdır; örn.\n* İlk madde\n* İkinci madde\n* Üçüncü madde';
         case "number":
-            return ' The "summary" field in your JSON response must be a single number only. No units or explanation.';
+            return ' JSON yanıtındaki "summary" alanı yalnızca tek bir sayı olmalı. Birim veya açıklama ekleme.';
         case "percentage":
-            return ' The "summary" field in your JSON response must be a single percentage value only (e.g. 42%). No explanation.';
+            return ' JSON yanıtındaki "summary" alanı yalnızca tek bir yüzde değeri olmalı (ör. 42%). Açıklama ekleme.';
         case "monetary_amount":
-            return ' The "summary" field in your JSON response must be the monetary value only, including currency symbol (e.g. $1,234.56). No explanation.';
+            return ' JSON yanıtındaki "summary" alanı yalnızca parasal değer olmalı; para birimi sembolü dahil (ör. $1,234.56). Açıklama ekleme.';
         case "currency":
-            return ' The "summary" field in your JSON response must contain only the currency code(s). Wrap each code in double square brackets, e.g. [[USD]] or [[EUR]]. No other text.';
+            return ' JSON yanıtındaki "summary" alanı yalnızca para birimi kod(lar)ını içermeli. Her kodu çift köşeli parantez içine al; ör. [[USD]] veya [[EUR]]. Başka metin ekleme.';
         case "yes_no":
-            return ' The "summary" field in your JSON response must be [[Yes]] or [[No]] only. The "reasoning" field MUST include an inline citation [[page:N||quote:verbatim excerpt ≤25 words]] pointing to the exact language in the document that supports the Yes/No answer.';
+            return ' JSON yanıtındaki "summary" alanı yalnızca [[Yes]] veya [[No]] olmalı. "reasoning" alanı, Evet/Hayır cevabını destekleyen belgedeki tam ifadeye işaret eden satır içi bir atıf [[page:N||quote:birebir alıntı ≤25 kelime]] içermelidir.';
         case "date":
-            return ' The "summary" field in your JSON response must be the date only in DD Month YYYY format (e.g. 1 January 2024). If a range, give both dates separated by an em dash. The "reasoning" field MUST include an inline citation [[page:N||quote:verbatim excerpt ≤25 words]] pointing to the exact place in the document where the date is found.';
+            return ' JSON yanıtındaki "summary" alanı yalnızca tarih olmalı ve DD Month YYYY formatında yazılmalı (ör. 1 January 2024). Bir aralık söz konusuysa iki tarihi uzun çizgi ile ayır. "reasoning" alanı, tarihin bulunduğu belgedeki tam yere işaret eden satır içi bir atıf [[page:N||quote:birebir alıntı ≤25 kelime]] içermelidir.';
         case "tag":
             return tags?.length
-                ? ` The \"summary\" field in your JSON response must contain exactly one tag wrapped in double square brackets. Available tags: ${tags.map((t) => `[[${t}]]`).join(", ")}. No other text. The \"reasoning\" field MUST include an inline citation [[page:N||quote:verbatim excerpt ≤25 words]] pointing to the exact language in the document that supports the chosen tag.`
+                ? ` JSON yanıtındaki \"summary\" alanı tam olarak bir etiket içermeli ve çift köşeli parantezle sarılmalı. Kullanılabilir etiketler: ${tags.map((t) => `[[${t}]]`).join(", ")}. Başka metin ekleme. \"reasoning\" alanı, seçilen etiketi destekleyen belgedeki tam ifadeye işaret eden satır içi bir atıf [[page:N||quote:birebir alıntı ≤25 kelime]] içermelidir.`
                 : "";
         default:
             return "";
@@ -240,17 +240,17 @@ tabularRouter.post("/prompt", requireAuth, async (req, res) => {
         : [];
 
     const formatDescriptions: Record<string, string> = {
-        text: "free-form text",
-        bulleted_list: "a bulleted list",
-        number: "a single number",
-        percentage: "a percentage value",
-        monetary_amount: "a monetary amount",
-        currency: "a currency code",
-        yes_no: "Yes or No",
-        date: "a date",
-        tag: tags.length ? `one of these tags: ${tags.join(", ")}` : "a tag",
+        text: "serbest metin",
+        bulleted_list: "madde işaretli liste",
+        number: "tek bir sayı",
+        percentage: "yüzde değeri",
+        monetary_amount: "para tutarı",
+        currency: "para birimi kodu",
+        yes_no: "Evet ya da Hayır",
+        date: "tarih",
+        tag: tags.length ? `şu etiketlerden biri: ${tags.join(", ")}` : "bir etiket",
     };
-    const formatHint = formatDescriptions[format] ?? "free-form text";
+    const formatHint = formatDescriptions[format] ?? "serbest metin";
     const tagsNote =
         format === "tag" && tags.length
             ? `\nAvailable tags: ${tags.join(", ")}`
@@ -258,20 +258,19 @@ tabularRouter.post("/prompt", requireAuth, async (req, res) => {
     const docNote = documentName ? `\nDocument type/name: ${documentName}` : "";
 
     const userMessage =
-        `Column title: ${title}` +
+        `Sütun başlığı: ${title}` +
         docNote +
         `\nExpected response format: ${formatHint}` +
         tagsNote +
-        `\n\nWrite the best extraction prompt for a legal tabular review column with this title. ` +
-        `Do NOT include any instruction about the response format in the prompt — ` +
-        `format handling is applied separately and must not be duplicated inside the prompt text.`;
+        `\n\nBu başlık için hukuki tablo incelemesi sütununa yönelik en iyi çıkarım prompt'unu yaz. ` +
+        `Prompt'a yanıt biçimiyle ilgili hiçbir talimat ekleme - biçimlendirme ayrı uygulanır ve prompt metninin içinde tekrarlanmamalıdır.`;
 
     try {
         const { title_model, api_keys } = await getUserModelSettings(userId);
         const raw = await completeText({
             model: title_model,
             systemPrompt:
-                'You write high-quality column prompts for legal tabular review workflows. Return only valid JSON with a single field: {"prompt": string}. The prompt you write must focus solely on what to extract — never on how to format the response.',
+                'Hukuki tablo inceleme akışları için yüksek kaliteli sütun promptları yazarsın. Yalnızca tek alanı olan geçerli JSON döndür: {"prompt": string}. Yazdığın prompt yalnızca neyin çıkarılacağına odaklanmalı - yanıtın nasıl biçimlendirileceğine asla odaklanmamalıdır.',
             user: userMessage,
             maxTokens: 512,
             apiKeys: api_keys,
@@ -655,7 +654,7 @@ tabularRouter.post(
             }[]
         ).find((c) => c.index === column_index);
         if (!column)
-            return void res.status(400).json({ detail: "Column not found" });
+        return void res.status(400).json({ detail: "Sütun bulunamadı" });
 
         const { data: doc } = await db
             .from("documents")
@@ -1052,21 +1051,21 @@ function buildTabularMessages(
         .map((c, i) => `- COL:${i} "${c.name}"`)
         .join("\n");
 
-    const systemContent = `You are Mike, an AI legal assistant. You are helping with the tabular review titled "${reviewTitle}".
+    const systemContent = `Mike'sın, yapay zekâ hukuk asistanısın. "${reviewTitle}" başlıklı tablo incelemesine yardımcı oluyorsun.
 
 The review extracts specific fields from multiple legal documents into a structured table.
 You do NOT have the cell content yet — call read_table_cells to fetch the cells you need before answering.
 
-DOCUMENTS (rows):
+BELGELER (satırlar):
 ${docList || "- (none)"}
 
-COLUMNS (fields):
+SÜTUNLAR (alanlar):
 ${colList || "- (none)"}
 
-TABULAR CITATION INSTRUCTIONS:
-When you reference specific cell content, place a numbered marker [1], [2], etc. inline in your prose at the point of reference.
+TABLO ATIF TALİMATLARI:
+Belirli bir hücre içeriğine atıf yaparken, ilgili yerde köşeli parantez içinde [1], [2] vb. numaralı bir işaret kullan.
 
-After your complete response, append a <CITATIONS> block containing a JSON array with one entry per marker:
+Tam yanıtından sonra, her işaret için bir giriş içeren JSON dizisinden oluşan bir <CITATIONS> bloğu ekle:
 
 <CITATIONS>
 [
@@ -1075,13 +1074,13 @@ After your complete response, append a <CITATIONS> block containing a JSON array
 ]
 </CITATIONS>
 
-Rules:
-- col_index and row_index are 0-based (matching the COL/ROW numbers listed above)
-- Only cite cells you have read via read_table_cells
-- quote should be verbatim text from the cell's summary
-- Omit <CITATIONS> if you make no citations
-- Do not fabricate cell content
-- Answer in clear, concise prose. You may use markdown formatting.`;
+Kurallar:
+- col_index ve row_index 0 bazlıdır (yukarıdaki COL/ROW numaralarıyla eşleşir)
+- Yalnızca 'read_table_cells' ile okuduğun hücreleri alıntıla
+- quote, hücrenin özetindeki birebir metin olmalı
+- Hiç atıf yapmıyorsan <CITATIONS> bloğunu ekleme
+- Hücre içeriği uydurma
+- Yanıtı açık ve kısa bir düzyazı ile ver. Markdown biçimlendirmesi kullanabilirsin.`;
 
     const formatted: unknown[] = [{ role: "system", content: systemContent }];
     for (const msg of messages) {
@@ -1351,21 +1350,21 @@ async function queryGemini(
     apiKeys?: import("../lib/llm").UserApiKeys,
 ) {
     const suffix = formatPromptSuffix(format as never, tags);
-    const fullPrompt = `${columnPrompt}${suffix} If not found, state "Not Found". Leave all reasoning and explanation in the "reasoning" field only.`;
+    const fullPrompt = `${columnPrompt}${suffix} Bulunamazsa "Not Found" de. Tüm gerekçe ve açıklamayı yalnızca "reasoning" alanında bırak.`;
 
-    const EXTRACTION_SYSTEM = `You are a legal document analyst. Return ONLY valid JSON:
+    const EXTRACTION_SYSTEM = `Hukuki bir doküman analistsin. YALNIZCA geçerli JSON döndür:
 {"summary": string, "flag": "green"|"grey"|"yellow"|"red", "reasoning": string}
 
-The "summary" and "reasoning" field values may use markdown formatting (bullets, bold, italics, etc.) — the values are still plain JSON strings (escape newlines as \\n), but the text inside will be rendered as markdown in the UI.
+ "summary" ve "reasoning" alan değerleri markdown biçimlendirmesi (madde işaretleri, kalın, italik vb.) kullanabilir - değerler yine düz JSON string'lerdir (satır sonlarını \\n olarak kaçır), ancak içindeki metin UI'da markdown olarak gösterilir.
 
-The "summary" field must contain only the extracted value with inline citations — no explanation or reasoning. Every factual claim in "summary" must be followed immediately by a citation in the format [[page:N||quote:exact quoted text]], where N is the page number and the quote is a short verbatim excerpt (≤ 25 words). The quote must be narrowly scoped to the specific claim it supports — extract only the exact words that support that statement, not the surrounding sentence or paragraph. Do not have multiple claims share the same long quote; if two different statements need different evidence, give each its own short, narrowly-scoped quote. All reasoning and explanation belongs in "reasoning" only, which may also contain citations.`;
+ "summary" alanı yalnızca çıkarılan değeri ve satır içi atıfları içermelidir - açıklama veya gerekçe olmamalıdır. "summary" içindeki her olgusal iddianın hemen ardından [[page:N||quote:exact quoted text]] biçiminde bir atıf gelmelidir; N sayfa numarasıdır ve alıntı, kısa bir birebir alıntıdır (≤ 25 kelime). Alıntı, desteklediği iddiaya dar şekilde odaklanmalıdır - cümleyi veya paragrafı değil, o ifadeyi destekleyen tam kelimeleri çıkar. Birden fazla iddia için aynı uzun alıntıyı kullanma; farklı iki ifade farklı delil gerektiriyorsa her birine kendi kısa, dar alıntısını ver. Tüm gerekçe ve açıklama yalnızca "reasoning" alanında olmalıdır; burada da atıflar bulunabilir.`;
 
     let raw: string;
     try {
         raw = await completeText({
             model,
             systemPrompt: EXTRACTION_SYSTEM,
-            user: `Document: ${filename}\n\n${documentText.slice(0, 120_000)}\n\n---\nInstruction: ${fullPrompt}`,
+            user: `Doküman: ${filename}\n\n${documentText.slice(0, 120_000)}\n\n---\nTalimat: ${fullPrompt}`,
             maxTokens: 2048,
             apiKeys,
         });
@@ -1420,12 +1419,12 @@ async function generateChatTitle(
         if (context?.reviewTitle)
             contextLines.push(`Tabular review: ${context.reviewTitle}`);
         const contextBlock = contextLines.length
-            ? `This chat is in the context of a tabular review.\n${contextLines.join("\n")}\n\n`
+            ? `Bu sohbet bir tablo incelemesi bağlamındadır.\n${contextLines.join("\n")}\n\n`
             : "";
 
         const raw = await completeText({
             model,
-            user: `${contextBlock}Generate a short title (4-6 words) for a chat that starts with the message below. The title should reflect the user's specific question, not the review or project name. Return only the title, no punctuation, no quotes:\n\n${firstUserMessage}`,
+            user: `${contextBlock}Aşağıdaki mesajla başlayan bir sohbet için kısa bir başlık (4-6 kelime) oluştur. Başlık kullanıcının spesifik sorusunu yansıtmalı; inceleme veya proje adını içermemeli. Yalnızca başlığı döndür; noktalama işareti ve tırnak kullanma:\n\n${firstUserMessage}`,
             maxTokens: 64,
             apiKeys,
         });
@@ -1441,18 +1440,18 @@ function buildTabularContext(
     cells: any[],
 ): string {
     const lines: string[] = [
-        "# Tabular Review Context\n",
-        "Columns (0-based index):",
+        "# Tablo İnceleme Bağlamı\n",
+        "Sütunlar (0 bazlı indeks):",
     ];
     columns.forEach((col: any, i: number) =>
         lines.push(`- COL:${i} → "${col.name}"`),
     );
-    lines.push("", "Documents (0-based row index):");
+    lines.push("", "Dokümanlar (0 bazlı satır indeksi):");
     docs.forEach((doc: any, i: number) =>
         lines.push(`- ROW:${i} → "${doc.filename}"`),
     );
-    lines.push("", "## Table Data\n");
-    lines.push(`| Document | ${columns.map((c: any) => c.name).join(" | ")} |`);
+    lines.push("", "## Tablo Verisi\n");
+    lines.push(`| Doküman | ${columns.map((c: any) => c.name).join(" | ")} |`);
     lines.push(`|---|${columns.map(() => "---").join("|")}|`);
     docs.forEach((doc: any, rowIdx: number) => {
         const rowCells = columns.map((col: any, colPos: number) => {
@@ -1465,20 +1464,20 @@ function buildTabularContext(
                 cell.status === "pending" ||
                 cell.status === "generating"
             ) {
-                return `(pending) [[COL:${colPos}||ROW:${rowIdx}]]`;
+                return `(beklemede) [[COL:${colPos}||ROW:${rowIdx}]]`;
             }
             if (cell.status === "error") {
-                return `(error) [[COL:${colPos}||ROW:${rowIdx}]]`;
+                return `(hata) [[COL:${colPos}||ROW:${rowIdx}]]`;
             }
             const content = parseCellContent(cell.content);
-            const summary = content?.summary?.trim() || "(not yet generated)";
+            const summary = content?.summary?.trim() || "(henüz oluşturulmadı)";
             const truncated =
                 summary.length > 400 ? summary.slice(0, 400) + "…" : summary;
             return `${truncated} [[COL:${colPos}||ROW:${rowIdx}]]`;
         });
         lines.push(
-            `| ROW:${rowIdx} ${doc.filename} | ${rowCells.join(" | ")} |`,
-        );
+        `| SATIR:${rowIdx} ${doc.filename} | ${rowCells.join(" | ")} |`,
+    );
     });
     return lines.join("\n");
 }
@@ -1507,26 +1506,26 @@ async function queryGeminiAllColumns(
     const columnsDesc = columns
         .map((col) => {
             const suffix = formatPromptSuffix(col.format as never, col.tags);
-            const fullPrompt = `${col.prompt}${suffix} If not found, state "Not Found".`;
-            return `Column ${col.index} — "${col.name}": ${fullPrompt}`;
+            const fullPrompt = `${col.prompt}${suffix} Bulunamazsa "Not Found" de.`;
+            return `Sütun ${col.index} — "${col.name}": ${fullPrompt}`;
         })
         .join("\n");
 
-    const SYSTEM = `You are a legal document analyst. Extract information for each column listed below.
+    const SYSTEM = `Hukuki bir doküman analistsin. Aşağıda listelenen her sütun için bilgileri çıkar.
 
-For each column, output exactly one minified JSON object on its own line (no line breaks inside the JSON), then a newline. Process columns in order and output each result as soon as you finish it.
+Her sütun için kendi satırında tam olarak bir minify JSON nesnesi üret (JSON içinde satır kırığı olmasın), ardından bir yeni satır ekle. Sütunları sırayla işle ve her birini tamamladığın anda sonucunu yaz.
 
-Line format:
+Satır biçimi:
 {"column_index": <N>, "summary": <string>, "flag": <"green"|"grey"|"yellow"|"red">, "reasoning": <string>}
 
 Rules:
-- "summary": the extracted value with inline citations [[page:N||quote:verbatim excerpt ≤25 words]] after every factual claim. No explanation or reasoning here. Quotes must be narrowly scoped to the specific claim — extract only the exact supporting words, not the full surrounding sentence. Do not reuse one long quote across multiple statements; give each claim its own short, precise quote.
-- "flag": green = standard/favorable, yellow = needs attention, red = problematic/unfavorable, grey = neutral/not found
-- "reasoning": brief explanation of the extraction
-- The "summary" and "reasoning" string VALUES may use markdown (bullets, bold, italics, etc.) — escape newlines as \\n inside the JSON string. This markdown is rendered in the UI.
-- Output ONLY the JSON lines themselves. Do NOT wrap the response in markdown code fences (e.g. \`\`\`json), and do not add any preamble or summary.`;
+- "summary": çıkarılan değer, her olgusal iddianın ardından yer alan satır içi atıflarla [[page:N||quote:birebir alıntı ≤25 kelime]]. Burada açıklama veya gerekçe yok. Alıntılar yalnızca ilgili iddiaya dar biçimde odaklanmalıdır - tüm cümleyi değil, iddiayı destekleyen tam kelimeleri çıkar. Tek bir uzun alıntıyı farklı birden çok ifade için yeniden kullanma; her iddia için kendi kısa ve net alıntısını ver.
+- "flag": green = standart/lehe, yellow = dikkat gerektirir, red = sorunlu/aleyhe, grey = nötr/bulunamadı
+- "reasoning": çıkarımın kısa açıklaması
+- "summary" ve "reasoning" string DEĞERLERİ markdown kullanabilir (madde işaretleri, kalın, italik vb.) - JSON string içinde satır sonlarını \\n olarak kaçır. Bu markdown UI'da gösterilir.
+- Yalnızca JSON satırlarını döndür. Yanıtı markdown code fence içine alma (ör. \`\`\`json) ve başına herhangi bir giriş ya da özet ekleme.`;
 
-    const USER = `Document: ${filename}\n\n${documentText.slice(0, 120_000)}\n\n---\nColumns to extract:\n${columnsDesc}`;
+    const USER = `Doküman: ${filename}\n\n${documentText.slice(0, 120_000)}\n\n---\nÇıkarılacak sütunlar:\n${columnsDesc}`;
 
     let contentBuffer = "";
     const pending: Promise<unknown>[] = [];

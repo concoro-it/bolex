@@ -173,7 +173,7 @@ function BulkEditActions({
                 {busy === "accept" && (
                     <Loader2 className="h-3 w-3 animate-spin" />
                 )}
-                Accept all
+                Tümünü kabul et
             </button>
             <button
                 onClick={() => handleAll("reject")}
@@ -183,7 +183,7 @@ function BulkEditActions({
                 {busy === "reject" && (
                     <Loader2 className="h-3 w-3 animate-spin" />
                 )}
-                Reject all
+                Tümünü reddet
             </button>
             {progress && (
                 <span className="text-xs font-serif text-gray-500">
@@ -198,7 +198,7 @@ function BulkEditActions({
                     disabled={!!busy}
                     className="ml-auto px-2 py-1 text-xs rounded border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                 >
-                    View
+                    Gör
                 </button>
             )}
         </div>
@@ -496,7 +496,7 @@ function DocFindBlock({
                 <span className="font-medium">{label}</span>{" "}
                 <span>
                     &ldquo;{query}&rdquo;{matchSuffix}
-                    <span className="ml-1 text-gray-400">in {filename}</span>
+                    <span className="ml-1 text-gray-400">{filename} içinde</span>
                     {isStreaming && "..."}
                 </span>
             </div>
@@ -774,10 +774,10 @@ function DocEditedBlock({
             <div className="ml-2 min-w-0 flex-1 whitespace-normal break-words">
                 <span className="font-medium">
                     {isStreaming
-                        ? "Editing"
+                        ? "Düzenleniyor"
                         : hasError
-                          ? "Edit failed"
-                          : "Edited"}
+                          ? "Düzenleme başarısız"
+                          : "Düzenlendi"}
                 </span>{" "}
                 <span>{isStreaming ? `${filename}...` : filename}</span>
             </div>

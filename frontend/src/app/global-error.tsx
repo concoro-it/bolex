@@ -12,7 +12,7 @@ export default function GlobalError({
     }, [error]);
 
     return (
-        <html lang="en">
+            <html lang="tr">
             <head>
                 <title>Bir şey ters gitti - Bolex</title>
                 <style>{`

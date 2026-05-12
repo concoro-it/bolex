@@ -49,8 +49,8 @@ export function FileDirectory({
     onChange,
     allowMultiple = true,
     forceExpanded = false,
-    emptyMessage = "No documents yet",
-    heading = "Documents",
+    emptyMessage = "Henüz doküman yok",
+    heading = "Dokümanlar",
     onDelete,
 }: FileDirectoryProps) {
     const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
@@ -168,7 +168,7 @@ export function FileDirectory({
                                     className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
                                 >
                                     <Trash2 className="h-3 w-3" />
-                                    Delete
+                                    Sil
                                 </button>
                             )}
                             {standaloneDocs.length > 0 && (
@@ -178,8 +178,8 @@ export function FileDirectory({
                                     className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                                 >
                                     {allStandaloneSelected
-                                        ? "Deselect all"
-                                        : "Select all"}
+                                        ? "Tüm seçimi kaldır"
+                                        : "Tümünü seç"}
                                 </button>
                             )}
                         </div>
@@ -228,7 +228,7 @@ export function FileDirectory({
                 {standaloneDocs.length > 0 && directoryProjects.length > 0 && (
                     <div className="border-t border-gray-100 py-2 px-2">
                         <p className="text-xs font-medium text-gray-400">
-                            Projects
+                            Projeler
                         </p>
                     </div>
                 )}
@@ -266,7 +266,7 @@ export function FileDirectory({
                                 <div>
                                     {docs.length === 0 ? (
                                         <p className="pl-7 py-1 text-xs text-gray-400">
-                                            Empty
+                                            Boş
                                         </p>
                                     ) : (
                                         docs.map((doc) => {

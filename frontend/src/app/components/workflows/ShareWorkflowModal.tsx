@@ -84,13 +84,13 @@ export function ShareWorkflowModal({
                     <EmailPillInput
                         emails={pendingEmails}
                         onChange={setPendingEmails}
-                        placeholder="Kişileri e-posta ile ekleyin…"
+                        placeholder="Kişileri e-postayla ekleyin…"
                         autoFocus
                     />
 
                     {/* Permission toggle */}
                     <div className="flex flex-col gap-2">
-                        <span className="text-xs font-medium text-gray-700">Paylaşılan kişilerin düzenlemesine izin ver</span>
+                        <span className="text-xs font-medium text-gray-700">Düzenleme izni ver</span>
                         <button
                             type="button"
                             onClick={() => setAllowEdit((v) => !v)}
@@ -120,7 +120,7 @@ export function ShareWorkflowModal({
                                     <div key={share.id} className="flex items-center justify-between py-1">
                                         <span className="text-sm text-gray-700 truncate">{share.shared_with_email}</span>
                                         <div className="flex items-center gap-3 shrink-0">
-                                            <span className="text-xs text-gray-400">{share.allow_edit ? "Can edit" : "Read-only"}</span>
+                                            <span className="text-xs text-gray-400">{share.allow_edit ? "Düzenleyebilir" : "Salt okunur"}</span>
                                             <button
                                                 onClick={() => handleRemoveShare(share.id)}
                                                 className="text-gray-300 hover:text-red-500 transition-colors"
@@ -141,14 +141,14 @@ export function ShareWorkflowModal({
                         onClick={onClose}
                         className="rounded-lg px-5 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
                     >
-                        Cancel
+                        İptal
                     </button>
                     <button
                         onClick={handleConfirm}
                         disabled={saving || pendingEmails.length === 0}
                         className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40 transition-colors"
                     >
-                        {saving ? "Sharing…" : "Share"}
+                        {saving ? "Paylaşılıyor…" : "Paylaş"}
                     </button>
                 </div>
             </div>

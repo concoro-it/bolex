@@ -253,7 +253,7 @@ function CitationHeader({
     return (
         <div className="pt-2 pb-3">
             <div className="flex items-center gap-2 mb-2">
-                <SectionLabel>Citation</SectionLabel>
+                <SectionLabel>Alıntı</SectionLabel>
                 <div className="ml-auto shrink-0">
                     <DownloadButton
                         documentId={documentId}
@@ -296,7 +296,7 @@ function TrackedChangeHeader({
     return (
         <div className="pt-2 pb-3">
             <div className="flex items-center gap-2 mb-2">
-                <SectionLabel>Tracked Change</SectionLabel>
+                <SectionLabel>Takip edilen değişiklik</SectionLabel>
                 <div className="ml-auto flex items-center gap-2 shrink-0">
                     <EditResolveButtons
                         edit={edit}
@@ -472,14 +472,14 @@ function EditResolveButtons({
                 disabled={inFlight || resolved}
                 className="inline-flex items-center gap-1 rounded-lg border border-gray-900 bg-gray-900 px-2 py-1.5 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                {status === "accepted" ? "Accepted" : "Accept"}
+                {status === "accepted" ? "Kabul edildi" : "Kabul et"}
             </button>
             <button
                 onClick={() => handle("reject")}
                 disabled={inFlight || resolved}
                 className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                {status === "rejected" ? "Rejected" : "Reject"}
+                {status === "rejected" ? "Reddedildi" : "Reddet"}
             </button>
         </div>
     );
@@ -547,7 +547,7 @@ function DownloadButton({
             ) : (
                 <Download className="h-3.5 w-3.5" />
             )}
-            Download
+            İndir
         </button>
     );
 }

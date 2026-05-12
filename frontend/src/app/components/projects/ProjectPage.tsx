@@ -866,7 +866,7 @@ export function ProjectPage({ projectId }: Props) {
                         <input
                             autoFocus
                             className="flex-1 min-w-0 text-sm text-gray-800 bg-transparent outline-none border-b border-gray-300"
-                            placeholder="Folder name"
+                            placeholder="Klasör adı"
                             value={newFolderName}
                             onChange={(e) => setNewFolderName(e.target.value)}
                             onKeyDown={(e) => {
@@ -1116,7 +1116,7 @@ export function ProjectPage({ projectId }: Props) {
             <div className="flex-1 overflow-y-auto bg-white">
                 <div className="flex items-start justify-between px-8 py-4">
                     <div className="flex items-center gap-1.5 text-2xl font-medium font-serif">
-                        <span className="text-gray-400">Projects</span>
+                        <span className="text-gray-400">Projeler</span>
                         <span className="text-gray-300">›</span>
                         <div className="h-6 w-40 rounded bg-gray-100 animate-pulse" />
                     </div>
@@ -1274,7 +1274,7 @@ export function ProjectPage({ projectId }: Props) {
                         {tab !== "documents" && (
                             <>
                                 <span className="text-gray-300">›</span>
-                                <span className="text-gray-900">{tab === "assistant" ? "Assistant" : "Tabular Reviews"}</span>
+                                <span className="text-gray-900">{tab === "assistant" ? "Asistan" : "Tablolu incelemeler"}</span>
                             </>
                         )}
                     </div>
@@ -1323,7 +1323,7 @@ export function ProjectPage({ projectId }: Props) {
                 tabs={[
                     { id: "documents", label: "Dokümanlar" },
                     { id: "assistant", label: "Asistan" },
-                    { id: "reviews", label: "Tablolu İncelemeler" },
+                    { id: "reviews", label: "Tablolu incelemeler" },
                 ]}
                 active={tab}
                 onChange={handleTabChange}
@@ -1721,7 +1721,7 @@ export function ProjectPage({ projectId }: Props) {
                 open={addDocsOpen}
                 onClose={() => setAddDocsOpen(false)}
                 onSelect={handleDocsSelected}
-                breadcrumb={["Projects", project.name + (project.cm_number ? ` (${project.cm_number})` : ""), "Add Documents"]}
+                breadcrumb={["Projeler", project.name + (project.cm_number ? ` (${project.cm_number})` : ""), "Doküman ekle"]}
                 projectId={projectId}
             />
 
@@ -1772,12 +1772,12 @@ export function ProjectPage({ projectId }: Props) {
                 fetchPeople={getProjectPeople}
                 currentUserEmail={user?.email ?? null}
                 breadcrumb={[
-                    "Projects",
+                    "Projeler",
                     project
                         ? project.name +
                           (project.cm_number ? ` (${project.cm_number})` : "")
                         : "",
-                    "People",
+                    "Kişiler",
                 ]}
                 // Only owners may modify the member list. Without this prop
                 // PeopleModal renders read-only — non-owners can still see

@@ -111,7 +111,7 @@ export function WorkflowPromptEditor({
                                 .run()
                         }
                         active={editor.isActive("heading", { level: 1 })}
-                        title="Heading 1"
+                        title="Başlık 1"
                     >
                         <Heading1 className="h-4 w-4" />
                     </ToolbarBtn>
@@ -124,7 +124,7 @@ export function WorkflowPromptEditor({
                                 .run()
                         }
                         active={editor.isActive("heading", { level: 2 })}
-                        title="Heading 2"
+                        title="Başlık 2"
                     >
                         <Heading2 className="h-4 w-4" />
                     </ToolbarBtn>
@@ -137,7 +137,7 @@ export function WorkflowPromptEditor({
                                 .run()
                         }
                         active={editor.isActive("heading", { level: 3 })}
-                        title="Heading 3"
+                        title="Başlık 3"
                     >
                         <Heading3 className="h-4 w-4" />
                     </ToolbarBtn>
@@ -147,7 +147,7 @@ export function WorkflowPromptEditor({
                             editor.chain().focus().toggleBold().run()
                         }
                         active={editor.isActive("bold")}
-                        title="Bold"
+                        title="Kalın"
                     >
                         <Bold className="h-4 w-4" />
                     </ToolbarBtn>
@@ -156,7 +156,7 @@ export function WorkflowPromptEditor({
                             editor.chain().focus().toggleItalic().run()
                         }
                         active={editor.isActive("italic")}
-                        title="Italic"
+                        title="İtalik"
                     >
                         <Italic className="h-4 w-4" />
                     </ToolbarBtn>
@@ -166,7 +166,7 @@ export function WorkflowPromptEditor({
                             editor.chain().focus().toggleBulletList().run()
                         }
                         active={editor.isActive("bulletList")}
-                        title="Bullet list"
+                        title="Madde listesi"
                     >
                         <List className="h-4 w-4" />
                     </ToolbarBtn>
@@ -175,7 +175,7 @@ export function WorkflowPromptEditor({
                             editor.chain().focus().toggleOrderedList().run()
                         }
                         active={editor.isActive("orderedList")}
-                        title="Numbered list"
+                        title="Numaralı liste"
                     >
                         <ListOrdered className="h-4 w-4" />
                     </ToolbarBtn>

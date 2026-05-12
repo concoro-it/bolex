@@ -54,7 +54,7 @@ export function DeleteChatsModal({
                             {/* Header */}
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-4xl font-light font-eb-garamond text-red-700">
-                                    Delete All Chats
+                                    Tüm sohbetleri sil
                                 </h2>
                             </div>
 
@@ -76,7 +76,7 @@ export function DeleteChatsModal({
                                     >
                                         {isDeleting
                                             ? "Deleting..."
-                                            : "Delete All Chats"}
+                                            : "Tüm sohbetleri sil"}
                                     </Button>
                                     <Button
                                         onClick={onClose}
@@ -84,7 +84,7 @@ export function DeleteChatsModal({
                                         disabled={isDeleting}
                                         className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
                                     >
-                                        Cancel
+                                        İptal
                                     </Button>
                                 </div>
                             </div>

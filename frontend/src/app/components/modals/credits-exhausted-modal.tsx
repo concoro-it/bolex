@@ -70,7 +70,7 @@ export function CreditsExhaustedModal({
                             onClick={onClose}
                             className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
                         >
-                            Close
+                            Kapat
                         </button>
                     </div>
                 </div>

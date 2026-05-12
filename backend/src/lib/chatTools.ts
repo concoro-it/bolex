@@ -77,7 +77,7 @@ export type ChatMessage = {
 // Constants
 // ---------------------------------------------------------------------------
 
-export const SYSTEM_PROMPT = `You are Mike, an AI legal assistant that helps lawyers and legal professionals analyze documents, answer legal questions, and draft legal documents.
+export const SYSTEM_PROMPT = `Mike'sın; hukuk profesyonellerine belge analizi, hukuki soru yanıtlama ve hukuki doküman taslağı hazırlama konusunda yardımcı olan bir yapay zekâ hukuk asistanısın. Tüm yanıtlarını Türkçe ver.
 
 TURKISH LEGAL RESEARCH:
 When the user asks about Turkish law, case law, public decisions, tax rulings, data protection, or verified legal authority, use the available MCP legal research tools proactively. Prefer Turkish legal sources and cite the specific court, decision number/date, law article, or source URL when available. Do not invent citations; if a source cannot be verified, say so plainly.
@@ -151,7 +151,7 @@ export const PROJECT_EXTRA_TOOLS = [
         function: {
             name: "list_documents",
             description:
-                "List all documents available in the project. Returns each document's ID, filename, and file type. Call this to discover what documents are available before deciding which ones to read.",
+                "Projede bulunan tüm dokümanları listele. Her dokümanın ID'sini, dosya adını ve dosya türünü döndürür. Hangi dokümanların mevcut olduğunu görmek için bunu çağır.",
             parameters: { type: "object", properties: {} },
         },
     },
@@ -160,7 +160,7 @@ export const PROJECT_EXTRA_TOOLS = [
         function: {
             name: "fetch_documents",
             description:
-                "Read the full text content of multiple documents in a single call. Use this instead of calling read_document repeatedly when you need to read several documents at once.",
+                "Birden çok dokümanın tam metin içeriğini tek çağrıda oku. Aynı anda birkaç dokümanı okuman gerektiğinde bunu, `read_document`'i tekrar tekrar çağırmak yerine kullan.",
             parameters: {
                 type: "object",
                 properties: {
@@ -180,26 +180,26 @@ export const PROJECT_EXTRA_TOOLS = [
         function: {
             name: "replicate_document",
             description:
-                "Make byte-for-byte copies of an existing project document as new project documents. Use when the user wants standalone copies to edit (e.g. 'use this NDA as a template', 'give me three drafts I can adapt') without modifying the original. Pass `count` to create multiple copies in a single call rather than calling the tool repeatedly. Returns the new doc_id slugs so you can immediately call edit_document / read_document on them.",
+                "Mevcut bir proje dokümanının birebir kopyalarını yeni proje dokümanları olarak oluştur. Kullanıcı orijinali değiştirmeden düzenleyebileceği ayrı kopyalar istediğinde kullan (ör. 'bu NDA'yı şablon olarak kullan', 'uyarlayabileceğim üç taslak ver'). Birden çok kopya için aracı tekrar tekrar çağırmak yerine tek çağrıda `count` gönder. Yeni `doc_id` slug'larını döndürür; böylece hemen `edit_document` / `read_document` çağırabilirsin.",
             parameters: {
                 type: "object",
                 properties: {
                     doc_id: {
                         type: "string",
                         description:
-                            "ID of the source document to copy (e.g. 'doc-0').",
+                            "Kopyalanacak kaynak dokümanın ID'si (ör. 'doc-0').",
                     },
                     count: {
                         type: "integer",
                         description:
-                            "How many copies to create. Defaults to 1. Maximum 20.",
+                            "Kaç kopya oluşturulacağı. Varsayılan 1'dir. En fazla 20.",
                         minimum: 1,
                         maximum: 20,
                     },
                     new_filename: {
                         type: "string",
                         description:
-                            "Optional base filename. With count > 1, copies are suffixed (e.g. 'Foo (1).docx', 'Foo (2).docx'). Extension is forced to match the source.",
+                            "İsteğe bağlı temel dosya adı. `count > 1` ise kopyalara ek sonek verilir (ör. 'Foo (1).docx', 'Foo (2).docx'). Uzantı kaynakla eşleşmeye zorlanır.",
                     },
                 },
                 required: ["doc_id"],
@@ -214,7 +214,7 @@ export const TABULAR_TOOLS = [
         function: {
             name: "read_table_cells",
             description:
-                "Read the extracted cell content from the tabular review. Each cell contains the value extracted for a specific column from a specific document. Pass col_indices and/or row_indices (0-based) to read a subset; omit either to read all columns or all rows.",
+                "Tablo incelemesindeki çıkarılmış hücre içeriğini oku. Her hücre, belirli bir dokümandan belirli bir sütun için çıkarılan değeri içerir. Bir alt küme okumak için `col_indices` ve/veya `row_indices` (0 bazlı) gönder; hepsini okumak için bunlardan birini boş bırak.",
             parameters: {
                 type: "object",
                 properties: {
@@ -222,13 +222,13 @@ export const TABULAR_TOOLS = [
                         type: "array",
                         items: { type: "integer" },
                         description:
-                            "0-based column indices to read (e.g. [0, 2]). Omit to read all columns.",
+                            "Okunacak 0 bazlı sütun indeksleri (ör. [0, 2]). Tüm sütunları okumak için boş bırak.",
                     },
                     row_indices: {
                         type: "array",
                         items: { type: "integer" },
                         description:
-                            "0-based document (row) indices to read (e.g. [0, 1]). Omit to read all rows.",
+                            "Okunacak 0 bazlı doküman (satır) indeksleri (ör. [0, 1]). Tüm satırları okumak için boş bırak.",
                     },
                 },
             },
@@ -242,7 +242,7 @@ export const WORKFLOW_TOOLS = [
         function: {
             name: "list_workflows",
             description:
-                "List all workflows available to the user. Returns each workflow's ID and title. Call this when the user asks to run a workflow, apply a template, or you need to discover what workflows exist.",
+                "Kullanıcıya açık tüm akışları listele. Her akışın ID'sini ve başlığını döndürür. Kullanıcı bir akış çalıştırmak, şablon uygulamak veya mevcut akışları keşfetmek istediğinde bunu çağır.",
             parameters: { type: "object", properties: {} },
         },
     },
@@ -251,7 +251,7 @@ export const WORKFLOW_TOOLS = [
         function: {
             name: "read_workflow",
             description:
-                "Read the full instructions (prompt) of a workflow by its ID. Call this after list_workflows to load a specific workflow's prompt, then follow those instructions.",
+                "Bir akışın tam talimatlarını (prompt) ID'sine göre oku. Belirli bir akışın prompt'unu yüklemek için `list_workflows` sonrasında bunu çağır ve ardından bu talimatları izle.",
             parameters: {
                 type: "object",
                 properties: {
@@ -272,7 +272,7 @@ export const TOOLS = [
         function: {
             name: "read_document",
             description:
-                "Read the full text content of a document attached by the user. Always call this before answering questions about, summarising, or citing from a document.",
+                "Kullanıcının eklediği bir dokümanın tam metin içeriğini oku. Bir doküman hakkında yanıt vermeden, özetlemeden veya ondan alıntı yapmadan önce bunu her zaman çağır.",
             parameters: {
                 type: "object",
                 properties: {
@@ -291,7 +291,7 @@ export const TOOLS = [
         function: {
             name: "find_in_document",
             description:
-                "Search for specific strings inside a document — a Ctrl+F equivalent. Returns each match with surrounding context so you can locate and quote the exact text without reading the whole document. Matching is case-insensitive and whitespace-tolerant. Use this for targeted lookups (e.g. finding a clause title, party name, or a specific phrase) rather than reading the whole document.",
+                "Bir doküman içinde belirli dizeleri ara - Ctrl+F eşdeğeri. Her eşleşmeyi çevresindeki bağlamla birlikte döndürür; böylece tüm belgeyi okumadan tam metni bulup alıntılayabilirsin. Eşleştirme büyük/küçük harfe duyarsızdır ve boşluklara toleranslıdır. Tüm belgeyi okumak yerine hedefli aramalar için kullan (ör. bir madde başlığı, taraf adı veya belirli bir ifade bulmak).",
             parameters: {
                 type: "object",
                 properties: {
@@ -325,7 +325,7 @@ export const TOOLS = [
         function: {
             name: "generate_docx",
             description:
-                "Generate a Word (.docx) document from structured content. Use this when the user asks you to draft, create, or produce a legal document. Returns a download URL for the generated file.",
+                "Yapılandırılmış içerikten bir Word (.docx) dokümanı oluştur. Kullanıcı bir hukuki doküman taslağı hazırlamanı, oluşturmanı veya üretmeni istediğinde bunu kullan. Oluşturulan dosya için bir indirme URL'si döndürür.",
             parameters: {
                 type: "object",
                 properties: {
@@ -566,7 +566,7 @@ export async function enrichWithPriorEvents(
         }
     }
     if (lines.length === 0) return messages;
-    const summary = `\n\n[Tool activity in your previous turn]\n${lines.join("\n")}`;
+    const summary = `\n\n[Önceki turdaki araç etkinliği]\n${lines.join("\n")}`;
 
     // Find the index of the last assistant message and attach the
     // summary there only.
@@ -601,13 +601,13 @@ export function buildMessages(
     }
 
     if (docAvailability.length) {
-        systemContent += "\n\n---\nAVAILABLE DOCUMENTS:\n";
+        systemContent += "\n\n---\nKULLANILABİLİR DOKÜMANLAR:\n";
         for (const doc of docAvailability) {
             const label = doc.folder_path ? `${doc.folder_path} / ${doc.filename}` : doc.filename;
             systemContent += `- ${doc.doc_id}: ${label}\n`;
         }
         systemContent +=
-            "\nYou do NOT retain document content between conversation turns. You MUST call read_document (or fetch_documents) at the start of every response that involves a document's content, even if you have read it in a previous turn. Failure to do so will result in hallucinated or stale content.\n---\n";
+            "\nKonuşma turları arasında doküman içeriğini korumazsın. Bir dokümanın içeriğini içeren her yanıta başlarken `read_document` (veya `fetch_documents`) çağırmak ZORUNDASIN; önceki turda okumuş olsan bile bunu yapmalısın. Bunu yapmamak uydurma veya güncel olmayan içerik üretmene yol açar.\n---\n";
     }
     formatted.push({ role: "system", content: systemContent });
 
@@ -635,7 +635,7 @@ export function buildMessages(
                     ? `- ${slug}: ${f.filename}`
                     : `- ${f.filename}`;
             });
-            content = `[The user attached the following document(s) to this message:\n${lines.join("\n")}]\n\n${content}`;
+            content = `[Kullanıcı bu mesaja aşağıdaki doküman(lar)ı ekledi:\n${lines.join("\n")}]\n\n${content}`;
         }
         formatted.push({ role: msg.role, content });
     }
@@ -877,7 +877,7 @@ export async function generateDocx(
             .single();
         if (docErr || !docRow) {
             return {
-                error: `Failed to record generated document: ${docErr?.message ?? "unknown"}`,
+                error: `Oluşturulan doküman kaydedilemedi: ${docErr?.message ?? "unknown"}`,
             };
         }
         const documentId = docRow.id as string;
@@ -895,7 +895,7 @@ export async function generateDocx(
             .single();
         if (verErr || !versionRow) {
             return {
-                error: `Failed to record generated document version: ${verErr?.message ?? "unknown"}`,
+                error: `Oluşturulan dokümanın sürümü kaydedilemedi: ${verErr?.message ?? "unknown"}`,
             };
         }
         const versionId = versionRow.id as string;
@@ -912,7 +912,7 @@ export async function generateDocx(
             version_id: versionId,
             version_number: 1,
             storage_path: key,
-            message: `Document '${filename}' has been generated successfully.`,
+            message: `Doküman '${filename}' başarıyla oluşturuldu.`,
         };
     } catch (e) {
         return { error: String(e) };
@@ -979,7 +979,7 @@ export async function runEditDocument(params: {
         .select("id, filename")
         .eq("id", documentId)
         .single();
-    if (!doc) return { ok: false, error: "Document not found." };
+    if (!doc) return { ok: false, error: "Doküman bulunamadı." };
 
     const current = await loadCurrentVersionBytes(documentId, db);
     if (!current) return { ok: false, error: "Could not load document bytes." };
@@ -995,7 +995,7 @@ export async function runEditDocument(params: {
             ok: false,
             error:
                 errors[0]?.reason ??
-                "No edits could be applied. Refine context_before/context_after and retry.",
+                "Hiçbir düzenleme uygulanamadı. context_before/context_after alanlarını netleştirip tekrar dene.",
         };
     }
 
@@ -1071,7 +1071,7 @@ export async function runEditDocument(params: {
             .select("id")
             .single();
         if (verErr || !versionRow) {
-            return { ok: false, error: "Failed to record document version." };
+        return { ok: false, error: "Doküman sürümü kaydedilemedi." };
         }
         versionRowId = versionRow.id as string;
     }
@@ -1095,7 +1095,7 @@ export async function runEditDocument(params: {
         .select("id, change_id, del_w_id, ins_w_id, deleted_text, inserted_text, context_before, context_after");
 
     if (editsErr || !insertedEdits) {
-        return { ok: false, error: "Failed to record edits." };
+        return { ok: false, error: "Düzenlemeler kaydedilemedi." };
     }
 
     await db
@@ -1158,7 +1158,7 @@ async function readDocumentContent(
             `[read_document] MISS — docLabel "${docLabel}" not in docStore. Known labels:`,
             Array.from(docStore.keys()),
         );
-        return "Document not found.";
+        return "Doküman bulunamadı.";
     }
     console.log(
         `[read_document] docInfo: filename="${docInfo.filename}", file_type="${docInfo.file_type}", storage_path="${docInfo.storage_path}"`,
@@ -1218,7 +1218,7 @@ async function readDocumentContent(
                 `[read_document] FAILED to download any bytes for docLabel="${docLabel}" (tried path="${sourcePath}")`,
             );
             emitDocRead();
-            return "Document could not be read.";
+            return "Doküman okunamadı.";
         }
         // Log the first 8 bytes so we can identify real file format regardless
         // of the declared file_type. Valid .docx starts with "PK\x03\x04"
@@ -1285,7 +1285,7 @@ async function readDocumentContent(
         );
         if (emitEvents)
             write(`data: ${JSON.stringify({ type: "doc_read", filename: docInfo.filename })}\n\n`);
-        return "Document could not be read.";
+        return "Doküman okunamadı.";
     }
 }
 
@@ -1347,14 +1347,14 @@ async function findInDocumentContent(params: {
     } = params;
 
     if (!query || !query.trim()) {
-        return JSON.stringify({ ok: false, error: "Empty query." });
+        return JSON.stringify({ ok: false, error: "Boş sorgu." });
     }
 
     const docInfo = docStore.get(docLabel);
     if (!docInfo) {
         return JSON.stringify({
             ok: false,
-            error: `Document '${docLabel}' not found.`,
+            error: `Doküman '${docLabel}' bulunamadı.`,
         });
     }
 
@@ -1377,7 +1377,7 @@ async function findInDocumentContent(params: {
         db,
         { emitEvents: false },
     );
-    if (!text || text === "Document could not be read.") {
+    if (!text || text === "Doküman okunamadı.") {
         write(
             `data: ${JSON.stringify({
                 type: "doc_find",
@@ -1389,7 +1389,7 @@ async function findInDocumentContent(params: {
         return JSON.stringify({
             ok: false,
             filename: docInfo.filename,
-            error: "Document could not be read.",
+            error: "Doküman okunamadı.",
         });
     }
 
@@ -1632,7 +1632,7 @@ export async function runToolCalls(
             toolResults.push({
                 role: "tool",
                 tool_call_id: tc.id,
-                content: wf ? wf.prompt_md : `Workflow '${wfId}' not found.`,
+            content: wf ? wf.prompt_md : `Akış '${wfId}' bulunamadı.`,
             });
 
         } else if (tc.function.name === "read_table_cells" && tabularStore) {
@@ -1646,7 +1646,7 @@ export async function runToolCalls(
                 ? tabularStore.documents.filter((_, i) => rowIndices.includes(i))
                 : tabularStore.documents;
 
-            const label = `${filteredCols.length} ${filteredCols.length === 1 ? "column" : "columns"} × ${filteredDocs.length} ${filteredDocs.length === 1 ? "row" : "rows"}`;
+            const label = `${filteredCols.length} ${filteredCols.length === 1 ? "sütun" : "sütun"} × ${filteredDocs.length} ${filteredDocs.length === 1 ? "satır" : "satır"}`;
             write(`data: ${JSON.stringify({ type: "doc_read_start", filename: label })}\n\n`);
 
             const lines: string[] = [];
@@ -1657,11 +1657,11 @@ export async function runToolCalls(
                     const cell = tabularStore.cells.get(`${col.index}:${doc.id}`);
                     lines.push(`[COL:${colPos} "${col.name}" | ROW:${rowPos} "${doc.filename}"]`);
                     if (cell?.summary) {
-                        lines.push(`Summary: ${cell.summary}`);
-                        if (cell.flag) lines.push(`Flag: ${cell.flag}`);
-                        if (cell.reasoning) lines.push(`Reasoning: ${cell.reasoning}`);
+                        lines.push(`Özet: ${cell.summary}`);
+                        if (cell.flag) lines.push(`Bayrak: ${cell.flag}`);
+                        if (cell.reasoning) lines.push(`Gerekçe: ${cell.reasoning}`);
                     } else {
-                        lines.push(`(not yet generated)`);
+                        lines.push(`(henüz oluşturulmadı)`);
                     }
                     lines.push("");
                 }
@@ -1672,7 +1672,7 @@ export async function runToolCalls(
             toolResults.push({
                 role: "tool",
                 tool_call_id: tc.id,
-                content: lines.join("\n") || "No cells found.",
+                content: lines.join("\n") || "Hücre bulunamadı.",
             });
 
         } else if (tc.function.name === "edit_document" && docIndex) {
@@ -1711,7 +1711,7 @@ export async function runToolCalls(
             };
 
             if (!docInfo || !indexed) {
-                const err = `Document '${docId}' not found in this chat's attachments.`;
+                const err = `Doküman '${docId}' bu sohbetin eklerinde bulunamadı.`;
                 emitEditError(docId, indexed?.document_id ?? "", err);
                 toolResults.push({
                     role: "tool",
@@ -1722,7 +1722,7 @@ export async function runToolCalls(
                 !Array.isArray(editsRaw) ||
                 editsRaw.length === 0
             ) {
-                const err = "edits array is required and must not be empty.";
+                const err = "edits dizisi zorunludur ve boş olamaz.";
                 emitEditError(docInfo.filename, indexed.document_id, err);
                 toolResults.push({
                     role: "tool",
@@ -1730,7 +1730,7 @@ export async function runToolCalls(
                     content: JSON.stringify({ error: err }),
                 });
             } else if (docInfo.file_type !== "docx") {
-                const err = "edit_document only supports .docx files.";
+                const err = "edit_document yalnızca .docx dosyalarını destekler.";
                 emitEditError(docInfo.filename, indexed.document_id, err);
                 toolResults.push({
                     role: "tool",
@@ -1879,9 +1879,9 @@ export async function runToolCalls(
             };
 
             if (!sourceInfo || !sourceIndexed) {
-                fail(`Document '${rawDocId}' not found in this project.`);
+                fail(`Doküman '${rawDocId}' bu projede bulunamadı.`);
             } else if (!projectId) {
-                fail("replicate_document is only available in project chats.");
+                fail("replicate_document yalnızca proje sohbetlerinde kullanılabilir.");
             } else {
                 try {
                     // Pull the active version once — every copy gets the
@@ -1900,7 +1900,7 @@ export async function runToolCalls(
                         : null;
                     if (!raw) {
                         fail(
-                            "Could not read the source document's bytes from storage.",
+                            "Kaynak dokümanın baytları depodan okunamadı.",
                         );
                     } else {
                         // Build N filenames. With count=1 keep the
@@ -1946,7 +1946,7 @@ export async function runToolCalls(
                             .select("id, filename");
                         if (docErr || !insertedDocs || insertedDocs.length === 0) {
                             fail(
-                                `Failed to record replicated documents: ${docErr?.message ?? "unknown"}`,
+                                `Çoğaltılan dokümanlar kaydedilemedi: ${docErr?.message ?? "unknown"}`,
                             );
                         } else {
                             // Preserve the request order so each row pairs
@@ -2016,7 +2016,7 @@ export async function runToolCalls(
                                 insertedVersions.length !== newDocs.length
                             ) {
                                 fail(
-                                    `Failed to record replicated document versions: ${verErr?.message ?? "unknown"}`,
+                                `Çoğaltılan doküman sürümleri kaydedilemedi: ${verErr?.message ?? "unknown"}`,
                                 );
                             } else {
                                 const versionByDocId = new Map<string, string>();

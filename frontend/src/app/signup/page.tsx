@@ -35,14 +35,14 @@ export default function SignupPage() {
 
         // Validate passwords match
         if (password !== confirmPassword) {
-            setError("Passwords do not match");
+            setError("Şifreler eşleşmiyor");
             setLoading(false);
             return;
         }
 
         // Validate password length
         if (password.length < 6) {
-            setError("Password must be at least 6 characters");
+            setError("Şifre en az 6 karakter olmalı");
             setLoading(false);
             return;
         }
@@ -84,7 +84,7 @@ export default function SignupPage() {
                 router.push("/assistant");
             }, 2000);
         } catch (error: any) {
-            setError(error.message || "An error occurred during signup");
+            setError(error.message || "Kayıt sırasında bir hata oluştu");
         } finally {
             setLoading(false);
         }
@@ -103,10 +103,10 @@ export default function SignupPage() {
                             <CheckCircle2 className="h-6 w-6 text-green-600" />
                         </div>
                         <h2 className="text-2xl font-semibold text-gray-900 mb-3">
-                            Account created!
+                            Hesap oluşturuldu!
                         </h2>
                         <p className="text-gray-600 leading-relaxed">
-                            Redirecting you to the home page...
+                            Ana sayfaya yönlendiriliyorsunuz...
                         </p>
                     </div>
                 </div>
@@ -124,17 +124,17 @@ export default function SignupPage() {
                 <div className="bg-white border border-gray-200 rounded-2xl p-8">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-left text-2xl font-serif">
-                            Create Account
+                            Hesap oluştur
                         </h2>
                         <div className="bg-gray-100 p-1 rounded-md flex text-xs font-medium">
                             <Link
                                 href="/login"
                                 className="px-3 py-1 text-gray-500 hover:text-gray-900"
                             >
-                                Log in
+                                Giriş yap
                             </Link>
                             <span className="px-3 py-1 bg-white rounded-sm shadow-sm text-gray-900">
-                                Sign up
+                                Kayıt ol
                             </span>
                         </div>
                     </div>
@@ -145,9 +145,9 @@ export default function SignupPage() {
                                 htmlFor="name"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Name{" "}
+                                Ad{" "}
                                 <span className="text-gray-400 font-normal">
-                                    (optional)
+                                    (isteğe bağlı)
                                 </span>
                             </label>
                             <Input
@@ -155,7 +155,7 @@ export default function SignupPage() {
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="Your name"
+                                placeholder="Adınız"
                                 className="w-full"
                             />
                         </div>
@@ -165,9 +165,9 @@ export default function SignupPage() {
                                 htmlFor="organisation"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Organisation{" "}
+                                Kurum{" "}
                                 <span className="text-gray-400 font-normal">
-                                    (optional)
+                                    (isteğe bağlı)
                                 </span>
                             </label>
                             <Input
@@ -177,7 +177,7 @@ export default function SignupPage() {
                                 onChange={(e) =>
                                     setOrganisation(e.target.value)
                                 }
-                                placeholder="Your organisation"
+                                placeholder="Kurumunuz"
                                 className="w-full"
                             />
                         </div>
@@ -187,14 +187,14 @@ export default function SignupPage() {
                                 htmlFor="email"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Email
+                                E-posta
                             </label>
                             <Input
                                 id="email"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Enter your email"
+                                placeholder="E-postanızı girin"
                                 required
                                 className="w-full"
                             />
@@ -205,14 +205,14 @@ export default function SignupPage() {
                                 htmlFor="password"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Password
+                                Şifre
                             </label>
                             <Input
                                 id="password"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Create a password (min. 6 characters)"
+                                placeholder="Şifre oluşturun (en az 6 karakter)"
                                 required
                                 className="w-full"
                             />
@@ -223,7 +223,7 @@ export default function SignupPage() {
                                 htmlFor="confirmPassword"
                                 className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                                Confirm Password
+                                Şifreyi doğrula
                             </label>
                             <Input
                                 id="confirmPassword"
@@ -232,7 +232,7 @@ export default function SignupPage() {
                                 onChange={(e) =>
                                     setConfirmPassword(e.target.value)
                                 }
-                                placeholder="Confirm your password"
+                                placeholder="Şifrenizi doğrulayın"
                                 required
                                 className="w-full"
                             />
