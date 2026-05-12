@@ -180,17 +180,17 @@ export const TRTable = forwardRef<TRTableHandle, Props>(function TRTable(
                 <div className="flex flex-1 flex-col items-start justify-center w-full max-w-xs mx-auto">
                     <Table2 className="h-8 w-8 text-gray-300 mb-4" />
                     <p className="text-2xl font-medium font-serif text-gray-900">
-                        Tabular Review
+                        Tablolu İnceleme
                     </p>
                     <p className="mt-1 text-xs text-gray-400 text-left">
-                        Add columns and documents to get started.
+                        Başlamak için sütun ve doküman ekleyin.
                     </p>
                     <div className="mt-4 flex items-center gap-2">
                         <button
                             onClick={onAddColumn}
                             className="inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-gray-700 shadow-md"
                         >
-                            + Add Columns
+                            + Sütun ekle
                         </button>
                         <button
                             onClick={onAddDocuments}

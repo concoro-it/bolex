@@ -221,7 +221,7 @@ export function AssistantSidePanel({
                 <button
                     onClick={onCloseAll}
                     className="shrink-0 mb-1 ml-1 rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
-                    title="Close panel"
+                    title="Paneli kapat"
                 >
                     <X className="h-4 w-4" />
                 </button>

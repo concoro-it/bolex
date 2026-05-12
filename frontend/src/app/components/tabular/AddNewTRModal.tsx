@@ -222,22 +222,22 @@ export function AddNewTRModal({
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
                         {isProjectMode && projectName ? (
                             <>
-                                <span>Projects</span>
+                                <span>Projeler</span>
                                 <span>›</span>
                                 <span>
                                     {projectName}
                                     {projectCmNumber ? ` (#${projectCmNumber})` : ""}
                                 </span>
                                 <span>›</span>
-                                <span>Tabular Reviews</span>
+                                <span>Tablolu İncelemeler</span>
                                 <span>›</span>
-                                <span>New review</span>
+                                <span>Yeni inceleme</span>
                             </>
                         ) : (
                             <>
-                                <span>Tabular Reviews</span>
+                                <span>Tablolu İncelemeler</span>
                                 <span>›</span>
-                                <span>New review</span>
+                                <span>Yeni inceleme</span>
                             </>
                         )}
                     </div>
@@ -259,7 +259,7 @@ export function AddNewTRModal({
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Review name"
+                            placeholder="İnceleme adı"
                             className="w-full text-2xl font-serif text-gray-800 placeholder-gray-400 focus:outline-none bg-transparent"
                             autoFocus
                         />

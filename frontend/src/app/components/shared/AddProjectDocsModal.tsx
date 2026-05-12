@@ -145,7 +145,7 @@ export function AddProjectDocsModal({
                         <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                         <input
                             type="text"
-                            placeholder="Search…"
+                            placeholder="Ara…"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 outline-none"
@@ -182,7 +182,7 @@ export function AddProjectDocsModal({
                         </div>
                     ) : filtered.length === 0 ? (
                         <p className="text-center text-sm text-gray-400 py-8">
-                            {q ? "No matches found" : "No documents in this project"}
+                            {q ? "Eşleşme bulunamadı" : "Bu projede doküman yok"}
                         </p>
                     ) : (
                         <div className="rounded-sm border border-gray-100 overflow-hidden">
@@ -229,7 +229,7 @@ export function AddProjectDocsModal({
                                         </span>
                                         {excluded && (
                                             <span className="text-[10px] text-gray-400 shrink-0">
-                                                Already added
+                                                Zaten eklendi
                                             </span>
                                         )}
                                         <VersionChip

@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Download, Trash2, X } from "lucide-react";
+import { Download, Pencil, Trash2, X } from "lucide-react";
 import { DocView } from "./DocView";
 import { getDocumentUrl } from "@/app/lib/mikeApi";
 import type { MikeDocument } from "./types";
@@ -14,6 +13,7 @@ interface Props {
     /** Optional label suffix for the header (e.g. "V3"). */
     versionLabel?: string | null;
     onClose: () => void;
+    onEdit?: (doc: MikeDocument) => void;
     onDelete?: (doc: MikeDocument) => void;
 }
 
@@ -22,12 +22,10 @@ export function DocViewModal({
     versionId,
     versionLabel,
     onClose,
+    onEdit,
     onDelete,
 }: Props) {
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
-
-    if (!doc || !mounted) return null;
+    if (!doc || typeof document === "undefined") return null;
 
     async function handleDownload() {
         if (!doc) return;
@@ -37,6 +35,11 @@ export function DocViewModal({
         a.download = filename;
         a.click();
     }
+
+    const isDocx =
+        doc.file_type === "docx" ||
+        doc.file_type === "doc" ||
+        /\.(docx?|DOCX?)$/.test(doc.filename);
 
     return createPortal(
         <div
@@ -48,7 +51,7 @@ export function DocViewModal({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-3 shrink-0">
+                <div className="flex items-center justify-between px-5 py-3 shrink-0 border-b border-gray-100">
                     <span className="text-base font-medium font-serif text-gray-800 truncate pr-4">
                         {doc.filename}
                         {versionLabel && (
@@ -58,6 +61,15 @@ export function DocViewModal({
                         )}
                     </span>
                     <div className="flex items-center gap-1 shrink-0">
+                        {isDocx && onEdit && (
+                            <button
+                                onClick={() => onEdit(doc)}
+                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                            >
+                                <Pencil className="h-3.5 w-3.5" />
+                                Edit
+                            </button>
+                        )}
                         <button
                             onClick={handleDownload}
                             className="flex items-center justify-center w-6 h-6 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
@@ -81,11 +93,11 @@ export function DocViewModal({
                     </div>
                 </div>
 
-                {/* DocView serves PDF when available and falls back to
-                    docx-preview internally if the active version has no
-                    PDF rendition. Passing no versionId tells the backend
-                    to resolve the latest tracked-changes version. */}
                 <div className="flex flex-col flex-1 overflow-hidden px-3 pb-3">
+                    {/* DocView serves PDF when available and falls back to
+                       docx-preview internally if the active version has no
+                       PDF rendition. Passing no versionId tells the backend
+                       to resolve the latest tracked-changes version. */}
                     <DocView
                         key={versionId ?? "current"}
                         doc={{

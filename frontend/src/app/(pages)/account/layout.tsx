@@ -12,8 +12,8 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-    { id: "general", label: "General", href: "/account" },
-    { id: "models", label: "Models & API Keys", href: "/account/models" },
+    { id: "general", label: "Genel", href: "/account" },
+    { id: "models", label: "Modeller ve API Anahtarları", href: "/account/models" },
 ];
 
 export default function AccountLayout({
@@ -47,12 +47,12 @@ export default function AccountLayout({
         <div className="flex flex-col h-full md:overflow-y-auto px-6 py-6 md:py-10">
             <div className="max-w-5xl w-full mx-auto">
                 <h1 className="text-4xl font-medium mb-8 font-eb-garamond">
-                    Settings
+                    Ayarlar
                 </h1>
 
                 <div className="flex flex-col md:flex-row gap-6 md:gap-10">
                     <nav
-                        aria-label="Settings"
+                        aria-label="Ayarlar"
                         className="md:w-56 shrink-0 flex md:flex-col gap-1 overflow-x-auto"
                     >
                         {TABS.map((tab) => {

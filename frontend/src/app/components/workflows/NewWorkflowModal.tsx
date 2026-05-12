@@ -100,7 +100,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-2 shrink-0">
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <span>Workflows</span>
+                        <span>Akışlar</span>
                         <span>›</span>
                         <span>{isEditing ? "Edit workflow" : "New workflow"}</span>
                     </div>
@@ -128,7 +128,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
                         {/* Type pills — only shown when creating */}
                         {!isEditing && (
                             <div className="mt-5">
-                                <p className="mb-2 text-sm font-medium text-gray-500">Type</p>
+                                <p className="mb-2 text-sm font-medium text-gray-500">Tür</p>
                                 <div className="flex items-center gap-2">
                                     <button
                                         type="button"
@@ -160,7 +160,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
 
                         {/* Practice */}
                         <div className="mt-5">
-                            <p className="mb-2 text-sm font-medium text-gray-500">Practice Area</p>
+                            <p className="mb-2 text-sm font-medium text-gray-500">Uygulama alanı</p>
                             <div className="flex flex-wrap gap-2">
                                 {PRACTICE_OPTIONS.map((p) => (
                                     <button
@@ -183,7 +183,7 @@ export function NewWorkflowModal({ open, onClose, onCreated, editWorkflow, onUpd
                                     type="text"
                                     value={customPractice}
                                     onChange={(e) => setCustomPractice(e.target.value)}
-                                    placeholder="Enter practice area…"
+                                    placeholder="Uygulama alanını girin…"
                                     className="mt-3 w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-gray-400 focus:outline-none"
                                 />
                             )}

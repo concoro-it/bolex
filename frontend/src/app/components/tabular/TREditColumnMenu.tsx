@@ -159,7 +159,7 @@ export function TREditColumnMenu({
                     {/* Format */}
                     <div className="mt-3">
                         <label className="text-xs font-medium text-gray-800">
-                            Format
+                            Biçim
                         </label>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -239,7 +239,7 @@ export function TREditColumnMenu({
                                     onKeyDown={handleTagKeyDown}
                                     onBlur={commitTag}
                                     placeholder={
-                                        tags.length === 0 ? "Add tags…" : ""
+                                        tags.length === 0 ? "Etiket ekle…" : ""
                                     }
                                     className="min-w-[60px] flex-1 bg-transparent text-xs text-gray-700 placeholder-gray-300 focus:outline-none"
                                 />
@@ -251,7 +251,7 @@ export function TREditColumnMenu({
                     <div className="mt-3">
                         <div className="flex items-center justify-between">
                             <label className="text-xs font-medium text-gray-800">
-                                Prompt
+                                İstem
                             </label>
                             <button
                                 type="button"

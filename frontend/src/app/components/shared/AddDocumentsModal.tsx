@@ -224,7 +224,7 @@ export function AddDocumentsModal({
                         <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                         <input
                             type="text"
-                            placeholder="Search…"
+                            placeholder="Ara…"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 outline-none"
@@ -252,7 +252,7 @@ export function AddDocumentsModal({
                         allowMultiple={allowMultiple}
                         forceExpanded={!!q}
                         emptyMessage={
-                            q ? "No matches found" : "No documents yet"
+                            q ? "Eşleşme bulunamadı" : "Henüz doküman yok"
                         }
                         onDelete={handleDelete}
                     />

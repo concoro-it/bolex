@@ -14,7 +14,7 @@ export default function GlobalError({
     return (
         <html lang="en">
             <head>
-                <title>Something went wrong - Bolex</title>
+                <title>Bir şey ters gitti - Bolex</title>
                 <style>{`
                     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=EB+Garamond:wght@400;500&display=swap');
 
@@ -79,16 +79,16 @@ export default function GlobalError({
             </head>
             <body>
                 <div className="error-container">
-                    <h1 className="error-title">Something went wrong</h1>
+                    <h1 className="error-title">Bir şey ters gitti</h1>
                     <p className="error-message">
-                        We encountered an unexpected error. This has been logged
-                        and our team will look into it.
+                        Beklenmeyen bir hata oluştu. Bu hata kaydedildi ve
+                        ekibimiz inceleyecek.
                     </p>
                     <button
                         className="btn-back"
                         onClick={() => window.history.back()}
                     >
-                        Back
+                        Geri
                     </button>
                 </div>
             </body>

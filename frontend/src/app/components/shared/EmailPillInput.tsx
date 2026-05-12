@@ -19,7 +19,7 @@ export function EmailPillInput({
     onChange,
     validate,
     onValidatingChange,
-    placeholder = "Add by email…",
+    placeholder = "E-posta ile ekle…",
     autoFocus = false,
 }: Props) {
     const [input, setInput] = useState("");
@@ -48,7 +48,7 @@ export function EmailPillInput({
             return;
         }
         if (!EMAIL_RE.test(email)) {
-            setError("Enter a valid email address.");
+            setError("Geçerli bir e-posta adresi girin.");
             return;
         }
         if (validate) {
@@ -61,7 +61,7 @@ export function EmailPillInput({
                     return;
                 }
             } catch {
-                setError("Could not verify email. Try again.");
+                setError("E-posta doğrulanamadı. Tekrar deneyin.");
                 return;
             } finally {
                 setValidatingState(false);
@@ -111,7 +111,7 @@ export function EmailPillInput({
                 />
             </div>
             {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-            {validating && <p className="mt-1.5 text-xs text-gray-400">Checking…</p>}
+            {validating && <p className="mt-1.5 text-xs text-gray-400">Kontrol ediliyor…</p>}
         </div>
     );
 }

@@ -46,6 +46,7 @@ import {
     type MikeDocumentVersion,
 } from "@/app/lib/mikeApi";
 import type {
+    ColumnConfig,
     MikeDocument,
     MikeFolder,
     MikeProject,
@@ -153,7 +154,7 @@ function DocVersionHistory({
                 <div className={`sticky left-8 z-[60] ${NAME_COL_W} bg-gray-50/60 p-2`}>
                     <div className="flex items-center gap-2">
                         <Loader2 className="h-3 w-3 animate-spin text-gray-400" />
-                        <span>Loading versions…</span>
+                        <span>Sürümler yükleniyor…</span>
                     </div>
                 </div>
             </div>
@@ -238,7 +239,7 @@ function DocVersionHistory({
                                         setEditingVersionId(v.id);
                                         setEditingValue(v.display_name ?? "");
                                     }}
-                                    title="Rename version"
+                                    title="Sürümü yeniden adlandır"
                                     className="shrink-0 rounded p-0.5 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-gray-700 hover:bg-gray-200 transition"
                                 >
                                     <Pencil className="h-3 w-3" />
@@ -258,7 +259,7 @@ function DocVersionHistory({
                                     e.stopPropagation();
                                     onDownloadVersion(docId, v.id, filename);
                                 }}
-                                title="Download this version"
+                                title="Bu sürümü indir"
                                 className="flex items-center justify-center w-6 h-6 rounded text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                             >
                                 <Download className="h-3.5 w-3.5" />
@@ -537,7 +538,11 @@ export function ProjectPage({ projectId }: Props) {
     function toggleFolder(id: string) {
         setExpandedFolderIds((prev) => {
             const next = new Set(prev);
-            next.has(id) ? next.delete(id) : next.add(id);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
             return next;
         });
     }
@@ -661,7 +666,7 @@ export function ProjectPage({ projectId }: Props) {
         title: string,
         _projectId?: string,
         documentIds?: string[],
-        columnsConfig?: any,
+        columnsConfig?: ColumnConfig[] | null,
     ) {
         setCreatingReview(true);
         try {
@@ -1148,7 +1153,7 @@ export function ProjectPage({ projectId }: Props) {
     if (!project) {
         return (
             <div className="flex h-full items-center justify-center">
-                <p className="text-gray-400">Project not found</p>
+                <p className="text-gray-400">Proje bulunamadı</p>
             </div>
         );
     }
@@ -1182,7 +1187,7 @@ export function ProjectPage({ projectId }: Props) {
                 onClick={() => setActionsOpen((v) => !v)}
                 className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors"
             >
-                Actions
+                İşlemler
                 <ChevronDown className="h-3.5 w-3.5" />
             </button>
             {actionsOpen && (
@@ -1192,7 +1197,7 @@ export function ProjectPage({ projectId }: Props) {
                             onClick={handleDownloadSelectedDocs}
                             className="w-full px-3 py-1.5 text-left text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                         >
-                            Download
+                            İndir
                         </button>
                     )}
                     {tab === "documents" && selectedDocIds.some((id) => docs.find((d) => d.id === id)?.folder_id != null) && (
@@ -1200,14 +1205,14 @@ export function ProjectPage({ projectId }: Props) {
                             onClick={handleRemoveSelectedFromFolder}
                             className="w-full px-3 py-1.5 text-left text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                         >
-                            Remove from subfolder
+                            Alt klasörden kaldır
                         </button>
                     )}
                     <button
                         onClick={handleDeleteSelected}
                         className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-red-50 transition-colors"
                     >
-                        Delete
+                        Sil
                     </button>
                 </div>
             )}
@@ -1275,12 +1280,12 @@ export function ProjectPage({ projectId }: Props) {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <HeaderSearchBtn value={search} onChange={setSearch} placeholder="Search…" />
+                    <HeaderSearchBtn value={search} onChange={setSearch} placeholder="Ara…" />
                     <button
                         onClick={() => setPeopleModalOpen(true)}
                         className="flex h-8 w-8 items-center justify-center text-sm text-gray-500 transition-colors hover:text-gray-900 cursor-pointer"
-                        title="People with access"
-                        aria-label="People with access"
+                        title="Erişimi olan kişiler"
+                        aria-label="Erişimi olan kişiler"
                     >
                         <Users className="h-4 w-4" />
                     </button>
@@ -1316,9 +1321,9 @@ export function ProjectPage({ projectId }: Props) {
 
             <ToolbarTabs
                 tabs={[
-                    { id: "documents", label: "Documents" },
-                    { id: "assistant", label: "Assistant" },
-                    { id: "reviews", label: "Tabular Reviews" },
+                    { id: "documents", label: "Dokümanlar" },
+                    { id: "assistant", label: "Asistan" },
+                    { id: "reviews", label: "Tablolu İncelemeler" },
                 ]}
                 active={tab}
                 onChange={handleTabChange}
@@ -1374,7 +1379,7 @@ export function ProjectPage({ projectId }: Props) {
                                 className="flex-1 flex cursor-pointer flex-col items-center justify-center py-24 text-center"
                             >
                                 <Upload className="h-8 w-8 text-gray-200 mb-3" />
-                                <p className="text-sm text-gray-400">Buraya bir PDF ya da Docx dosyası sürükleyin.</p>
+                                <p className="text-sm text-gray-400">Buraya bir PDF ya da DOCX dosyası sürükleyin.</p>
                             </div>
                         ) : (
                             <div
@@ -1519,7 +1524,7 @@ export function ProjectPage({ projectId }: Props) {
                                     }}
                                 >
                                     <FolderPlus className="h-3.5 w-3.5 text-gray-400" />
-                                    {contextMenu.showFolderActions ? "New subfolder inside" : "New subfolder"}
+                                    {contextMenu.showFolderActions ? "İçine yeni alt klasör" : "Yeni alt klasör"}
                                 </button>
                                 {contextMenu.showFolderActions && contextMenu.folderId && (
                                     <>
@@ -1532,7 +1537,7 @@ export function ProjectPage({ projectId }: Props) {
                                                 setContextMenu(null);
                                             }}
                                         >
-                                            Rename folder
+                                            Klasörü yeniden adlandır
                                         </button>
                                         <button
                                             className="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50"
@@ -1580,7 +1585,7 @@ export function ProjectPage({ projectId }: Props) {
                                 <p className="text-2xl font-medium font-serif text-gray-900">Asistan</p>
                                 <p className="mt-1 text-xs text-gray-400 max-w-xs">Bu projedeki belgelere göre soru sorun, yanıt alın.</p>
                                 <button onClick={() => handleNewChat()} className="mt-4 inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700 transition-colors shadow-md">
-                                    + Yeni Chat
+                                    + Yeni sohbet
                                 </button>
                             </div>
                         ) : (
@@ -1598,7 +1603,7 @@ export function ProjectPage({ projectId }: Props) {
                                             {renamingChatId === chat.id ? (
                                                 <input autoFocus value={renameChatValue} onChange={(e) => setRenameChatValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") submitChatRename(chat.id); if (e.key === "Escape") setRenamingChatId(null); }} onBlur={() => submitChatRename(chat.id)} onClick={(e) => e.stopPropagation()} className="w-full text-sm text-gray-800 bg-transparent outline-none" />
                                             ) : (
-                                                <span className="text-sm text-gray-800 truncate block">{chat.title ?? "Untitled Chat"}</span>
+                                                <span className="text-sm text-gray-800 truncate block">{chat.title ?? "Adsız sohbet"}</span>
                                             )}
                                         </div>
                                         <div className="ml-auto w-32 shrink-0 text-sm text-gray-500 truncate">{formatDate(chat.created_at)}</div>
@@ -1609,7 +1614,7 @@ export function ProjectPage({ projectId }: Props) {
                                                         setOwnerOnlyAction("rename this chat");
                                                         return;
                                                     }
-                                                    setRenameChatValue(chat.title ?? "Untitled Chat");
+                                                    setRenameChatValue(chat.title ?? "Adsız sohbet");
                                                     setRenamingChatId(chat.id);
                                                 }}
                                                 onDelete={async () => {
@@ -1677,7 +1682,7 @@ export function ProjectPage({ projectId }: Props) {
                                             {renamingReviewId === review.id ? (
                                                 <input autoFocus value={renameReviewValue} onChange={(e) => setRenameReviewValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") submitReviewRename(review.id); if (e.key === "Escape") setRenamingReviewId(null); }} onBlur={() => submitReviewRename(review.id)} onClick={(e) => e.stopPropagation()} className="w-full text-sm text-gray-800 bg-transparent outline-none" />
                                             ) : (
-                                                <span className="text-sm text-gray-800 truncate block">{review.title ?? "Untitled Review"}</span>
+                                                <span className="text-sm text-gray-800 truncate block">{review.title ?? "Adsız inceleme"}</span>
                                             )}
                                         </div>
                                         <div className="ml-auto w-24 shrink-0 text-sm text-gray-500 truncate">{review.columns_config?.length ?? 0}</div>
@@ -1690,7 +1695,7 @@ export function ProjectPage({ projectId }: Props) {
                                                         setOwnerOnlyAction("rename this tabular review");
                                                         return;
                                                     }
-                                                    setRenameReviewValue(review.title ?? "Untitled Review");
+                                                    setRenameReviewValue(review.title ?? "Adsız inceleme");
                                                     setRenamingReviewId(review.id);
                                                 }}
                                                 onDelete={async () => {
@@ -1736,6 +1741,11 @@ export function ProjectPage({ projectId }: Props) {
                 onClose={() => {
                     setViewingDoc(null);
                     setViewingDocVersion(null);
+                }}
+                onEdit={(doc) => {
+                    router.push(
+                        `/editor/projects/${projectId}/documents/${doc.id}`,
+                    );
                 }}
                 onDelete={(doc) => handleRemoveDoc(doc.id)}
             />

@@ -19,7 +19,7 @@ export function WFColumnViewModal({ col, onClose }: Props) {
             <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl flex flex-col h-[600px]">
                 <div className="flex items-center justify-between px-6 pt-5 pb-2">
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <span>Workflows</span>
+                        <span>Akışlar</span>
                         <span>›</span>
                         <span className="truncate max-w-[200px] text-gray-600">{col.name}</span>
                     </div>
@@ -29,11 +29,11 @@ export function WFColumnViewModal({ col, onClose }: Props) {
                 </div>
                 <div className="px-6 pt-3 pb-5 flex flex-col gap-4 overflow-y-auto flex-1">
                     <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Column Title</p>
+                        <p className="text-sm font-medium text-gray-500 mb-2">Sütun başlığı</p>
                         <p className="text-sm text-gray-800">{col.name}</p>
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Format</p>
+                        <p className="text-sm font-medium text-gray-500 mb-2">Biçim</p>
                         <span className="inline-flex items-center gap-1.5 text-sm text-gray-700">
                             <FormatIcon className="h-3.5 w-3.5 text-gray-400" />
                             {formatLabel(col.format ?? "text")}
@@ -41,7 +41,7 @@ export function WFColumnViewModal({ col, onClose }: Props) {
                     </div>
                     {col.tags && col.tags.length > 0 && (
                         <div>
-                            <p className="text-sm font-medium text-gray-500 mb-2.5">Tags</p>
+                            <p className="text-sm font-medium text-gray-500 mb-2.5">Etiketler</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {col.tags.map((tag) => (
                                     <span key={tag} className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{tag}</span>
@@ -50,7 +50,7 @@ export function WFColumnViewModal({ col, onClose }: Props) {
                         </div>
                     )}
                     <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Prompt</p>
+                        <p className="text-sm font-medium text-gray-500 mb-2">İstem</p>
                         <div className="text-base text-gray-700 leading-relaxed font-serif prose prose-base max-w-none">
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{col.prompt || "_No prompt defined._"}</ReactMarkdown>
                         </div>

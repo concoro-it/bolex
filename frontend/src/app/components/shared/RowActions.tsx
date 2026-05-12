@@ -91,7 +91,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-left text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <History className="h-3.5 w-3.5 shrink-0" />
-                            Tüm versiyonları göster
+                            Tüm sürümleri göster
                         </button>
                     )}
                     {onUploadNewVersion && (
@@ -100,7 +100,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-left text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <Upload className="h-3.5 w-3.5 shrink-0" />
-                            Yeni versiyon yükle
+                            Yeni sürüm yükle
                         </button>
                     )}
                     {onRemoveFromFolder && (
@@ -109,7 +109,7 @@ export function RowActions({ onDelete, onHide, onUnhide, onDownload, onRemoveFro
                             className="flex items-center gap-2 w-full px-3 py-2 text-xs text-left text-gray-600 hover:bg-gray-50 transition-colors"
                         >
                             <FolderMinus className="h-3.5 w-3.5 shrink-0" />
-                            Alt kategoriden kaldır
+                            Alt klasörden kaldır
                         </button>
                     )}
                     {onUnhide && (

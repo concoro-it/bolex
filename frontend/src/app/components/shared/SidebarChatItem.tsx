@@ -93,12 +93,12 @@ export function SidebarChatItem({ chat, isActive, onSelect, projectName }: Props
                         className={`flex-1 min-w-0 text-left px-3 py-2 text-xs overflow-x-hidden whitespace-nowrap scrollbar-none ${
                             isActive ? "text-gray-900" : "text-gray-700"
                         }`}
-                        title={projectName ? `${projectName}: ${chat.title ?? "Untitled chat"}` : (chat.title ?? "Untitled chat")}
+                        title={projectName ? `${projectName}: ${chat.title ?? "Adsız sohbet"}` : (chat.title ?? "Adsız sohbet")}
                     >
                         {projectName && (
                             <span className="text-gray-400 font-normal">{projectName}: </span>
                         )}
-                        {chat.title ?? "Untitled chat"}
+                        {chat.title ?? "Adsız sohbet"}
                     </button>
 
                     <DropdownMenu>

@@ -97,7 +97,7 @@ export function AssistantWorkflowModal({
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
                         {projectName ? (
                             <>
-                                <span>Projects</span>
+                                <span>Projeler</span>
                                 <span>›</span>
                                 <span>
                                     {projectName}
@@ -106,15 +106,15 @@ export function AssistantWorkflowModal({
                                         : ""}
                                 </span>
                                 <span>›</span>
-                                <span>Assistant</span>
+                                <span>Asistan</span>
                                 <span>›</span>
-                                <span>Add workflow</span>
+                                <span>Akış ekle</span>
                             </>
                         ) : (
                             <>
-                                <span>Assistant</span>
+                                <span>Asistan</span>
                                 <span>›</span>
-                                <span>Add workflow</span>
+                                <span>Akış ekle</span>
                             </>
                         )}
                     </div>
@@ -138,7 +138,7 @@ export function AssistantWorkflowModal({
                                 <Search className="h-3 w-3 text-gray-400 shrink-0" />
                                 <input
                                     type="text"
-                                    placeholder="Search workflows…"
+                                    placeholder="Akışları ara…"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     className="flex-1 bg-transparent text-xs text-gray-700 placeholder:text-gray-400 outline-none"

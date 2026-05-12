@@ -57,9 +57,9 @@ export function DocumentCard({ document, onRemove, onClick, selected }: Props) {
         </p>
         <p className="text-xs text-gray-400">
           {isProcessing
-            ? "Processing…"
+            ? "İşleniyor…"
             : isError
-            ? "Upload failed"
+            ? "Yükleme başarısız"
             : [
                 document.size_bytes != null ? formatBytes(document.size_bytes) : null,
                 document.page_count ? `${document.page_count}p` : null,
@@ -76,7 +76,7 @@ export function DocumentCard({ document, onRemove, onClick, selected }: Props) {
             onRemove(document.id);
           }}
           className="shrink-0 rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          aria-label="Remove document"
+          aria-label="Dokümanı kaldır"
         >
           <X className="h-3.5 w-3.5" />
         </button>

@@ -143,7 +143,7 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
                 <button
                     onClick={onToggle}
                     className="h-9 w-9 p-2.5 items-center flex hover:bg-gray-100 rounded-md transition-colors"
-                    title={isOpen ? "Close sidebar" : "Open sidebar"}
+                    title={isOpen ? "Kenar çubuğunu kapat" : "Kenar çubuğunu aç"}
                 >
                     <PanelLeft className="h-4 w-4" />
                 </button>
@@ -220,7 +220,7 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
                                     shouldAnimate ? "sidebar-fade-in-2" : ""
                                 }`}
                             >
-                                No chats yet
+                                Henüz sohbet yok
                             </div>
                         ) : (
                             <div

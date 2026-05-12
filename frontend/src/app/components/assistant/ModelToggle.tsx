@@ -56,7 +56,7 @@ export function ModelToggle({ value, onChange, apiKeys }: Props) {
                     className={`flex items-center gap-1.5 rounded-lg px-2 h-8 text-sm transition-colors cursor-pointer text-gray-400 hover:bg-gray-100 hover:text-gray-700 ${isOpen ? "bg-gray-100 text-gray-700" : ""}`}
                     title={
                         !selectedAvailable
-                            ? "API key missing for selected model"
+                            ? "Seçili model için API anahtarı eksik"
                             : "Choose model"
                     }
                 >
@@ -97,7 +97,7 @@ export function ModelToggle({ value, onChange, apiKeys }: Props) {
                                         {!available && (
                                             <AlertCircle
                                                 className="h-3.5 w-3.5 text-red-500 ml-1"
-                                                aria-label="API key missing"
+                                                aria-label="API anahtarı eksik"
                                             />
                                         )}
                                         {m.id === value && available && (

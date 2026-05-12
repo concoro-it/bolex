@@ -15,9 +15,9 @@ const ebGaramond = EB_Garamond({
 });
 
 export const metadata: Metadata = {
-    title: "Bolex - AI Legal Platform",
+    title: "Bolex - Yapay Zeka Hukuk Platformu",
     description:
-        "AI-powered legal document analysis and contract review platform.",
+        "Yapay zeka destekli hukuki doküman analizi ve sözleşme inceleme platformu.",
     icons: {
         icon: [
             { url: "/icon.svg", type: "image/svg+xml" },
@@ -33,7 +33,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="tr">
             <body
                 className={`${inter.variable} ${ebGaramond.variable} font-sans antialiased`}
             >

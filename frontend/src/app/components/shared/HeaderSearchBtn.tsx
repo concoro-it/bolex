@@ -9,7 +9,7 @@ interface Props {
     placeholder?: string;
 }
 
-export function HeaderSearchBtn({ value, onChange, placeholder = "Search…" }: Props) {
+export function HeaderSearchBtn({ value, onChange, placeholder = "Ara…" }: Props) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 

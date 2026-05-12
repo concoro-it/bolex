@@ -46,9 +46,9 @@ export function SelectAssistantProjectModal({ open, onClose }: Props) {
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4">
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <span>Assistant</span>
+                        <span>Asistan</span>
                         <span>›</span>
-                        <span>Start Chat in a Project</span>
+                        <span>Bir projede sohbet başlatın</span>
                     </div>
                     <button
                         onClick={onClose}

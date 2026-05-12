@@ -34,7 +34,7 @@ const CHECK_W = "w-8 shrink-0";
 const NAME_COL_W = "w-[300px] shrink-0";
 
 const TABS: { id: Tab; label: string }[] = [
-    { id: "all", label: "All Workflows" },
+    { id: "all", label: "Tüm akışlar" },
     { id: "builtin", label: "Built-in" },
     { id: "custom", label: "Custom" },
     { id: "hidden", label: "Hidden" },
@@ -234,7 +234,7 @@ export function WorkflowList() {
                         }}
                         className="flex items-center justify-between w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                     >
-                        All Types
+                        Tüm türler
                         {!typeFilter && (
                             <Check className="h-3.5 w-3.5 text-gray-400" />
                         )}
@@ -290,7 +290,7 @@ export function WorkflowList() {
                         }}
                         className="flex items-center justify-between w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                     >
-                        All Practices
+                        Tüm uygulama alanları
                         {!practiceFilter && (
                             <Check className="h-3.5 w-3.5 text-gray-400" />
                         )}
@@ -360,13 +360,13 @@ export function WorkflowList() {
             {/* Page header */}
             <div className="flex items-center justify-between px-8 py-4 shrink-0">
                 <h1 className="text-2xl font-medium font-serif text-gray-900">
-                    Workflows
+                    Akışlar
                 </h1>
                 <div className="flex items-center gap-2">
                     <HeaderSearchBtn
                         value={search}
                         onChange={setSearch}
-                        placeholder="Search workflows…"
+                        placeholder="Akışları ara…"
                     />
                     <button
                         onClick={() => setNewModalOpen(true)}
@@ -405,9 +405,9 @@ export function WorkflowList() {
                         <div className={`sticky left-8 z-[60] ${NAME_COL_W} bg-white pl-2 text-left`}>
                             Name
                         </div>
-                        <div className="ml-auto w-28 shrink-0">Type</div>
-                        <div className="w-40 shrink-0">Practice</div>
-                        <div className="w-28 shrink-0">Source</div>
+                        <div className="ml-auto w-28 shrink-0">Tür</div>
+                        <div className="w-40 shrink-0">Uygulama alanı</div>
+                        <div className="w-28 shrink-0">Kaynak</div>
                         <div className="w-8 shrink-0" />
                     </div>
 
@@ -441,7 +441,7 @@ export function WorkflowList() {
                                 <>
                                     <Library className="h-8 w-8 text-gray-300 mb-4" />
                                     <p className="text-2xl font-medium font-serif text-gray-900">
-                                        Custom Workflows
+                                        Özel akışlar
                                     </p>
                                     <p className="mt-1 text-xs text-gray-400 text-left">
                                         Build reusable prompts and tabular
@@ -459,7 +459,7 @@ export function WorkflowList() {
                                 <>
                                     <Library className="h-8 w-8 text-gray-300 mb-4" />
                                     <p className="text-2xl font-medium font-serif text-gray-900">
-                                        Hidden Workflows
+                                        Gizli akışlar
                                     </p>
                                     <p className="mt-1 text-xs text-gray-400 text-left">
                                         Built-in workflows you've hidden will
@@ -471,7 +471,7 @@ export function WorkflowList() {
                                 <>
                                     <Library className="h-8 w-8 text-gray-300 mb-4" />
                                     <p className="text-2xl font-medium font-serif text-gray-900">
-                                        Workflows
+                                        Akışlar
                                     </p>
                                     <p className="mt-1 text-xs text-gray-400 text-left">
                                         Automate document analysis with reusable

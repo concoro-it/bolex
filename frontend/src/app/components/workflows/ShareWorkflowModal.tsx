@@ -67,13 +67,13 @@ export function ShareWorkflowModal({
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <span>Workflows</span>
+                        <span>Akışlar</span>
                         <span>›</span>
                         <span className="truncate max-w-[220px]">
                             {workflowName}
                         </span>
                         <span>›</span>
-                        <span>People</span>
+                        <span>Kişiler</span>
                     </div>
                     <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                         <X className="h-4 w-4" />
@@ -84,13 +84,13 @@ export function ShareWorkflowModal({
                     <EmailPillInput
                         emails={pendingEmails}
                         onChange={setPendingEmails}
-                        placeholder="Add people by email…"
+                        placeholder="Kişileri e-posta ile ekleyin…"
                         autoFocus
                     />
 
                     {/* Permission toggle */}
                     <div className="flex flex-col gap-2">
-                        <span className="text-xs font-medium text-gray-700">Allow editing by share recipients</span>
+                        <span className="text-xs font-medium text-gray-700">Paylaşılan kişilerin düzenlemesine izin ver</span>
                         <button
                             type="button"
                             onClick={() => setAllowEdit((v) => !v)}
@@ -102,7 +102,7 @@ export function ShareWorkflowModal({
 
                     {/* Existing access */}
                     <div>
-                        <p className="text-xs font-medium text-gray-700 mb-2">People with access</p>
+                        <p className="text-xs font-medium text-gray-700 mb-2">Erişimi olan kişiler</p>
                         {loading ? (
                             <div className="space-y-2">
                                 {[1, 2].map((i) => (
@@ -113,7 +113,7 @@ export function ShareWorkflowModal({
                                 ))}
                             </div>
                         ) : existingShares.length === 0 ? (
-                            <p className="text-sm text-gray-400">None</p>
+                            <p className="text-sm text-gray-400">Yok</p>
                         ) : (
                             <div className="space-y-1">
                                 {existingShares.map((share) => (

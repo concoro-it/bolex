@@ -249,29 +249,29 @@ export default function SignupPage() {
                             disabled={loading}
                             className="w-full bg-black hover:bg-gray-900 text-white"
                         >
-                            {loading ? "Creating account..." : "Sign up"}
+                            {loading ? "Hesap oluşturuluyor..." : "Kayıt ol"}
                         </Button>
                     </form>
 
                     {/* Terms and Privacy */}
                     <div className="mt-4 text-center text-xs text-gray-500">
-                        By signing up, you agree to our{" "}
+                        Kayıt olarak{" "}
                         <Link
                             href="https://mikeoss.com/terms"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline"
                         >
-                            Terms of Use
+                            Kullanım Şartları
                         </Link>{" "}
-                        and{" "}
+                        ve{" "}
                         <Link
                             href="https://mikeoss.com/privacy"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline"
                         >
-                            Privacy Policy
+                            Gizlilik Politikası
                         </Link>
                     </div>
                 </div>

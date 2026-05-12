@@ -100,9 +100,9 @@ export function ProjectsOverview() {
     }
 
     const tabs: { id: Tab; label: string }[] = [
-        { id: "all", label: "All" },
-        { id: "mine", label: "Mine" },
-        { id: "shared-with-me", label: "Shared with me" },
+        { id: "all", label: "Tümü" },
+        { id: "mine", label: "Benim" },
+        { id: "shared-with-me", label: "Benimle paylaşılan" },
     ];
 
     async function handleRenameSubmit(projectId: string) {
@@ -155,7 +155,7 @@ export function ProjectsOverview() {
                         onClick={() => setActionsOpen((v) => !v)}
                         className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors"
                     >
-                        Actions
+                        İşlemler
                         <ChevronDown className="h-3.5 w-3.5" />
                     </button>
                     {actionsOpen && (
@@ -164,7 +164,7 @@ export function ProjectsOverview() {
                                 onClick={handleDeleteSelected}
                                 className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-red-50 transition-colors"
                             >
-                                Delete
+                                Sil
                             </button>
                         </div>
                     )}
@@ -178,13 +178,13 @@ export function ProjectsOverview() {
             {/* Page header */}
             <div className="flex items-center justify-between px-8 py-4">
                 <h1 className="text-2xl font-medium font-serif text-gray-900">
-                    Projects
+                    Projeler
                 </h1>
                 <div className="flex items-center gap-2">
                     <HeaderSearchBtn
                         value={search}
                         onChange={setSearch}
-                        placeholder="Search projects…"
+                        placeholder="Projeleri ara…"
                     />
                     <button
                         onClick={() => setModalOpen(true)}
@@ -221,15 +221,15 @@ export function ProjectsOverview() {
                         )}
                     </div>
                     <div className={`sticky left-8 z-[60] ${NAME_COL_W} bg-white pl-2 text-left`}>
-                        Name
+                        Ad
                     </div>
                     <div className="ml-auto w-32 shrink-0 text-left">CM</div>
-                    <div className="w-24 shrink-0 text-left">Files</div>
-                    <div className="w-24 shrink-0 text-left">Chats</div>
+                    <div className="w-24 shrink-0 text-left">Dosyalar</div>
+                    <div className="w-24 shrink-0 text-left">Sohbetler</div>
                     <div className="w-36 shrink-0 text-left">
-                        Tabular Reviews
+                        Tablolu İncelemeler
                     </div>
-                    <div className="w-32 shrink-0 text-left">Created</div>
+                    <div className="w-32 shrink-0 text-left">Oluşturulma</div>
                     <div className="w-8 shrink-0" />
                 </div>
 
@@ -269,7 +269,7 @@ export function ProjectsOverview() {
                             <>
                                 <FolderOpen className="h-8 w-8 text-gray-300 mb-4" />
                                 <p className="text-2xl font-medium font-serif text-gray-900">
-                                    Projects
+                                    Projeler
                                 </p>
                                 <p className="mt-1 text-xs text-gray-400 max-w-xs">
                                     Upload documents into projects and to

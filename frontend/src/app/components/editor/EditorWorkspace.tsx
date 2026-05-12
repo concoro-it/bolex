@@ -28,7 +28,6 @@ import {
     renameProjectFolder,
 } from "@/app/lib/mikeApi";
 import { useAssistantChat } from "@/app/hooks/useAssistantChat";
-import { useChatHistoryContext } from "@/app/contexts/ChatHistoryContext";
 import { ProjectExplorer } from "@/app/components/projects/ProjectExplorer";
 import { DocView } from "@/app/components/shared/DocView";
 import { DocxTiptapEditor } from "@/app/components/shared/DocxTiptapEditor";
@@ -130,29 +129,14 @@ function EditorAssistantPanel({
     onProjectDocumentsChanged: (focusDocumentId?: string | null) => void;
     onOpenDocument: (documentId: string) => void;
 }) {
-    const { saveChat } = useChatHistoryContext();
     const { user } = useAuth();
     const { profile } = useUserProfile();
-    const [chatId, setChatId] = useState<string | null>(null);
     const chatInputRef = useRef<ChatInputHandle | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement | null>(null);
     const username =
         profile?.displayName?.trim() || user?.email?.split("@")[0] || "there";
 
-    useEffect(() => {
-        if (!project?.id || chatId) return;
-        let cancelled = false;
-        saveChat(project.id)
-            .then((id) => {
-                if (!cancelled && id) setChatId(id);
-            })
-            .catch(() => {});
-        return () => {
-            cancelled = true;
-        };
-    }, [chatId, project?.id, saveChat]);
-
-    if (!chatId || !project) {
+    if (!project) {
         return (
             <div
                 style={{ width }}
@@ -165,8 +149,7 @@ function EditorAssistantPanel({
 
     return (
         <EditorAssistantThread
-            key={chatId}
-            chatId={chatId}
+            key={project.id}
             project={project}
             activeDoc={activeDoc}
             width={width}
@@ -180,7 +163,6 @@ function EditorAssistantPanel({
 }
 
 function EditorAssistantThread({
-    chatId,
     project,
     activeDoc,
     width,
@@ -190,7 +172,6 @@ function EditorAssistantThread({
     onProjectDocumentsChanged,
     onOpenDocument,
 }: {
-    chatId: string;
     project: MikeProject;
     activeDoc: MikeDocument | null;
     width: number;
@@ -201,7 +182,7 @@ function EditorAssistantThread({
     onOpenDocument: (documentId: string) => void;
 }) {
     const { messages, isResponseLoading, handleChat, cancel } =
-        useAssistantChat({ chatId, projectId: project.id });
+        useAssistantChat({ projectId: project.id });
     const lastMutationSignatureRef = useRef("");
 
     useEffect(() => {

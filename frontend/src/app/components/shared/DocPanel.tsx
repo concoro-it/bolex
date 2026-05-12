@@ -192,7 +192,7 @@ export function DocPanel({
             {useDocxView && editorMode === "edit" && mode.kind === "document" ? (
                 <DocxTiptapEditor
                     documentId={documentId}
-                    versionId={versionId}
+                    versionId={undefined}
                     filename={filename}
                     onDirtyChange={onManualEditDirtyChange}
                     onSaved={(version) => {

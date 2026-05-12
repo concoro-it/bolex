@@ -77,7 +77,7 @@ function SimpleProjectPicker({
                 }}
                 onFocus={() => setOpen(true)}
                 onBlur={() => setTimeout(() => setOpen(false), 150)}
-                placeholder="Select a project…"
+                placeholder="Bir proje seçin…"
                 className="w-full text-xs text-gray-700 placeholder:text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-3 py-2 outline-none"
             />
             {selectedId && (
@@ -177,7 +177,7 @@ function AssistantPanel({ workflow }: { workflow: MikeWorkflow }) {
         <div className="flex-1 border-l border-t border-gray-200 flex flex-col overflow-hidden px-3 pb-3">
             <div className="py-3 shrink-0">
                 <p className="text-xs font-medium text-gray-700">
-                    Workflow Prompt
+                    Akış istemi
                 </p>
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-3 text-sm border border-gray-200 rounded-md text-gray-600 leading-relaxed font-serif bg-gray-50">
@@ -201,7 +201,7 @@ function TabularPanel({ workflow }: { workflow: MikeWorkflow }) {
     return (
         <div className="flex-1 border-l border-t border-gray-200 flex flex-col overflow-hidden px-3 pb-3">
             <div className="py-3 shrink-0">
-                <p className="text-xs font-medium text-gray-700">Columns</p>
+                <p className="text-xs font-medium text-gray-700">Sütunlar</p>
             </div>
             <div className="flex-1 overflow-y-auto border border-gray-200 rounded-md bg-gray-50">
                 {columns.length === 0 ? (
@@ -242,7 +242,7 @@ function TabularPanel({ workflow }: { workflow: MikeWorkflow }) {
                                         {col.tags && col.tags.length > 0 && (
                                             <div>
                                                 <p className="text-xs font-medium text-gray-400 mb-1.5 font-sans">
-                                                    Tags
+                                                    Etiketler
                                                 </p>
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {col.tags.map((tag) => (
@@ -258,7 +258,7 @@ function TabularPanel({ workflow }: { workflow: MikeWorkflow }) {
                                         )}
                                         <div>
                                             <p className="text-xs font-medium text-gray-400 mb-1 font-sans">
-                                                Prompt
+                                                İstem
                                             </p>
                                             <MarkdownBody
                                                 content={
@@ -454,9 +454,9 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
                         {screen === "select" ? (
                             <>
-                                <span>Workflows</span>
+                                <span>Akışlar</span>
                                 <span>›</span>
-                                <span>Select workflow</span>
+                                <span>Akış seçin</span>
                             </>
                         ) : (
                             <>
@@ -464,7 +464,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                     onClick={() => setScreen("select")}
                                     className="hover:text-gray-700 transition-colors"
                                 >
-                                    Workflows
+                                    Akışlar
                                 </button>
                                 <span>›</span>
                                 <span className="truncate max-w-[160px]">
@@ -499,7 +499,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                         <Search className="h-3 w-3 text-gray-400 shrink-0" />
                                         <input
                                             type="text"
-                                            placeholder="Search…"
+                                            placeholder="Ara…"
                                             value={listSearch}
                                             onChange={(e) => setListSearch(e.target.value)}
                                             className="flex-1 bg-transparent text-xs text-gray-700 placeholder:text-gray-400 outline-none"
@@ -591,7 +591,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                     onChange={(e) =>
                                         setAssistantPrompt(e.target.value)
                                     }
-                                    placeholder="Add any additional instructions to the workflow prompt…"
+                                    placeholder="Akış istemine ek talimatlar girin…"
                                     className="w-full text-sm text-gray-700 placeholder:text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-3 py-2 resize-none outline-none leading-relaxed"
                                 />
                             </div>
@@ -641,7 +641,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                             <Search className="h-3 w-3 text-gray-400 shrink-0" />
                                             <input
                                                 type="text"
-                                                placeholder="Search…"
+                                                placeholder="Ara…"
                                                 value={docSearch}
                                                 onChange={(e) =>
                                                     setDocSearch(e.target.value)
@@ -760,7 +760,7 @@ export function DisplayWorkflowModal({ workflows, workflow, onClose }: Props) {
                                     <Search className="h-3 w-3 text-gray-400 shrink-0" />
                                     <input
                                         type="text"
-                                        placeholder="Search…"
+                                        placeholder="Ara…"
                                         value={docSearch}
                                         onChange={(e) =>
                                             setDocSearch(e.target.value)

@@ -86,9 +86,9 @@ export function NewProjectModal({ open, onClose, onCreated }: Props) {
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-2">
                     <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <span>Projects</span>
+                        <span>Projeler</span>
                         <span>›</span>
-                        <span>New project</span>
+                        <span>Yeni proje</span>
                     </div>
                     <button
                         onClick={handleClose}
@@ -105,7 +105,7 @@ export function NewProjectModal({ open, onClose, onCreated }: Props) {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Project name"
+                            placeholder="Proje adı"
                             className="w-full text-2xl font-serif text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                             autoFocus
                         />
@@ -115,7 +115,7 @@ export function NewProjectModal({ open, onClose, onCreated }: Props) {
                             type="text"
                             value={cmNumber}
                             onChange={(e) => setCmNumber(e.target.value)}
-                            placeholder="Add a CM number..."
+                            placeholder="CM numarası ekleyin..."
                             className="mt-1.5 w-full text-sm text-gray-500 placeholder-gray-300 focus:outline-none bg-transparent"
                         />
 
@@ -127,7 +127,7 @@ export function NewProjectModal({ open, onClose, onCreated }: Props) {
                                 className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                             >
                                 <Users className="h-3 w-3 text-gray-400" />
-                                Members{sharedEmails.length > 0 ? ` (${sharedEmails.length})` : ""}
+                                Üyeler{sharedEmails.length > 0 ? ` (${sharedEmails.length})` : ""}
                             </button>
                         </div>
 
@@ -137,21 +137,21 @@ export function NewProjectModal({ open, onClose, onCreated }: Props) {
                                 <EmailPillInput
                                     emails={sharedEmails}
                                     onChange={setSharedEmails}
-                                    placeholder="Add colleagues by email…"
+                                    placeholder="Meslektaşları e-posta ile ekleyin…"
                                 />
                             </div>
                         )}
 
                         {/* Documents */}
                         <div className="mt-4 space-y-2">
-                            <p className="text-xs font-medium text-gray-700">Select documents</p>
+                            <p className="text-xs font-medium text-gray-700">Doküman seçin</p>
                                 <FileDirectory
                                     standaloneDocs={standaloneDocuments}
                                     directoryProjects={dirProjects}
                                     loading={dirLoading}
                                     selectedIds={selectedDocIds}
                                     onChange={setSelectedDocIds}
-                                    emptyMessage="No existing documents"
+                                    emptyMessage="Mevcut doküman yok"
                                 />
 
                         </div>
@@ -177,7 +177,7 @@ export function NewProjectModal({ open, onClose, onCreated }: Props) {
                                 className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 transition-colors"
                             >
                                 <Upload className="h-3.5 w-3.5" />
-                                Upload files{pendingFiles.length > 0 ? ` (${pendingFiles.length})` : ""}
+                                Dosya yükle{pendingFiles.length > 0 ? ` (${pendingFiles.length})` : ""}
                             </button>
                         </div>
                         <div className="flex items-center gap-2">
@@ -186,14 +186,14 @@ export function NewProjectModal({ open, onClose, onCreated }: Props) {
                                 onClick={handleClose}
                                 className="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
                             >
-                                Cancel
+                                İptal
                             </button>
                             <button
                                 type="submit"
                                 disabled={!name.trim() || loading}
                                 className="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-40 transition-colors"
                             >
-                                {loading ? "Creating…" : "Create project"}
+                                {loading ? "Oluşturuluyor…" : "Proje oluştur"}
                             </button>
                         </div>
                     </div>
