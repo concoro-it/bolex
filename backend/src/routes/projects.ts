@@ -286,6 +286,37 @@ projectsRouter.get("/:projectId/people", requireAuth, async (req, res) => {
   res.json({ owner, members });
 });
 
+// GET /projects/:projectId/source-references
+projectsRouter.get("/:projectId/source-references", requireAuth, async (req, res) => {
+  const userId = res.locals.userId as string;
+  const userEmail = res.locals.userEmail as string | undefined;
+  const { projectId } = req.params;
+  const chatId = typeof req.query.chat_id === "string" ? req.query.chat_id : null;
+  const documentId =
+    typeof req.query.document_id === "string" ? req.query.document_id : null;
+  const versionId =
+    typeof req.query.version_id === "string" ? req.query.version_id : null;
+  const db = createServerSupabase();
+
+  const access = await checkProjectAccess(projectId, userId, userEmail, db);
+  if (!access.ok)
+    return void res.status(404).json({ detail: "Project not found" });
+
+  let query = db
+    .from("source_references")
+    .select("*")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (chatId) query = query.eq("chat_id", chatId);
+  if (documentId) query = query.eq("document_id", documentId);
+  if (versionId) query = query.eq("document_version_id", versionId);
+
+  const { data, error } = await query;
+  if (error) return void res.status(500).json({ detail: error.message });
+  res.json(data ?? []);
+});
+
 // PATCH /projects/:projectId
 projectsRouter.patch("/:projectId", requireAuth, async (req, res) => {
   const userId = res.locals.userId as string;

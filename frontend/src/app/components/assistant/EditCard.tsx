@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getApiBaseUrl } from "@/app/lib/apiBase";
 import type { MikeEditAnnotation } from "../shared/types";
+import { SourceReferenceCard } from "../shared/SourceReferenceCard";
 
 function normalizeText(s: string) {
     return s.replace(/\s+/g, " ").trim();
@@ -296,6 +297,20 @@ export function EditCard({
 
     return (
         <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+            <div className="mb-2 flex items-center gap-2 text-[11px] text-gray-500">
+                <span className="rounded border border-gray-200 bg-white px-1.5 py-0.5">
+                    {annotation.inserted_text && annotation.deleted_text
+                        ? "Yeniden yazım"
+                        : annotation.inserted_text
+                          ? "Ekleme"
+                          : "Silme"}
+                </span>
+                {annotation.source_references?.[0] && (
+                    <span className="rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-700">
+                        Kaynak bağlı
+                    </span>
+                )}
+            </div>
             {annotation.reason && (
                 <p className="text-xs text-gray-500 mb-2">
                     {annotation.reason}
@@ -343,6 +358,17 @@ export function EditCard({
                     </button>
                 )}
             </div>
+            {annotation.source_references?.length ? (
+                <div className="mt-3 space-y-2">
+                    {annotation.source_references.slice(0, 2).map((source) => (
+                        <SourceReferenceCard
+                            key={source.id}
+                            source={source}
+                            compact
+                        />
+                    ))}
+                </div>
+            ) : null}
         </div>
     );
 }

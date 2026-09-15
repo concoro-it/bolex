@@ -13,6 +13,7 @@ import {
 } from "../lib/chatTools";
 import { getUserApiKeys } from "../lib/userSettings";
 import { checkProjectAccess } from "../lib/access";
+import { recordVerificationEvent } from "../lib/verification";
 
 const PROJECT_SYSTEM_PROMPT_EXTRA = `PROJE BAĞLAMI:
 Bir proje klasörü içinde çalışıyorsun; bu klasör, kullanıcının tek bir uyuşmazlık/mesele için düzenlediği bir grup hukuki doküman içerir. Kullanıcının soruları genellikle bu projedeki bir veya daha fazla dokümana referans verir - görevin, üzerinde çalışılması gereken ilgili dosyaları bulmaktır. Nelerin mevcut olduğunu görmek için 'list_documents' kullan ve yanıt vermeden önce ihtiyacın olan dokümanları çekmek için 'fetch_documents' / 'read_document' çağır.
@@ -169,9 +170,62 @@ projectChatRouter.post("/", requireAuth, async (req, res) => {
             model,
             apiKeys,
             projectId,
+            chatId,
         });
 
         const annotations = extractAnnotations(fullText, docIndex, events);
+        const userDocumentSources: string[] = [];
+        for (const annotation of annotations as {
+            type?: string;
+            document_id?: string;
+            version_id?: string | null;
+            filename?: string;
+            page?: number | string;
+            quote?: string;
+        }[]) {
+            if (annotation.type !== "citation_data" || !annotation.document_id)
+                continue;
+            const { data: source } = await db
+                .from("source_references")
+                .insert({
+                    user_id: userId,
+                    project_id: projectId,
+                    chat_id: chatId,
+                    document_id: annotation.document_id,
+                    document_version_id: annotation.version_id ?? null,
+                    source_type: "user_document",
+                    provider: "Bolex Document",
+                    title: annotation.filename ?? "Kullanıcı dokümanı",
+                    article_no:
+                        annotation.page != null ? `Sayfa ${annotation.page}` : null,
+                    quote: annotation.quote ?? null,
+                    raw_payload: annotation,
+                    verification_status: "user_document",
+                })
+                .select("id")
+                .single();
+            if (source?.id) userDocumentSources.push(source.id as string);
+        }
+        const { data: turnSources } = await db
+            .from("source_references")
+            .select("id")
+            .eq("chat_id", chatId);
+        const turnSourceIds = [
+            ...new Set([
+                ...(turnSources ?? []).map((s) => s.id as string),
+                ...userDocumentSources,
+            ]),
+        ];
+        if (turnSourceIds.length > 0) {
+            await recordVerificationEvent(db, {
+                userId,
+                projectId,
+                chatId,
+                eventType: "source_attached",
+                eventLabel: "Sources attached to chat answer",
+                sourceReferenceIds: turnSourceIds,
+            });
+        }
         await db.from("chat_messages").insert({
             chat_id: chatId,
             role: "assistant",

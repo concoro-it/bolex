@@ -1,5 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
-import { getSupabaseServiceKey, getSupabaseUrl } from "./supabaseKeys";
+import {
+  getSupabaseAnonKey,
+  getSupabaseServiceKey,
+  getSupabaseUrl,
+} from "./supabaseKeys";
 
 /**
  * Server-side Supabase client using the service role key.
@@ -9,6 +13,17 @@ export function createServerSupabase() {
   const url = getSupabaseUrl();
   const key = getSupabaseServiceKey();
   return createClient(url, key, { auth: { persistSession: false } });
+}
+
+/**
+ * Client used only to validate end-user access tokens.
+ * Token verification does not require the privileged service key, and using
+ * the publishable/anon key also works with Supabase's newer sb_secret keys.
+ */
+export function createAuthSupabase() {
+  return createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+    auth: { persistSession: false },
+  });
 }
 
 /**
@@ -25,16 +40,14 @@ export async function getUserIdFromRequest(req: Request): Promise<string> {
   const token = auth.slice(7).trim();
 
   const supabaseUrl = getSupabaseUrl();
-  const serviceKey = getSupabaseServiceKey();
+  const anonKey = getSupabaseAnonKey();
 
-  if (!supabaseUrl || !serviceKey) {
+  if (!supabaseUrl || !anonKey) {
     throw new Response("Server auth is not configured", { status: 500 });
   }
 
-  const admin = createClient(supabaseUrl, serviceKey, {
-    auth: { persistSession: false },
-  });
-  const { data } = await admin.auth.getUser(token);
+  const authClient = createAuthSupabase();
+  const { data } = await authClient.auth.getUser(token);
   if (!data.user) {
     throw new Response("Invalid or expired token", { status: 401 });
   }

@@ -26,6 +26,9 @@ For Turkish legal research MCP routing, the backend defaults to the public endpo
 ```bash
 MCP_SERVER_URL=https://yargimcp.surucu.dev/mcp
 MEVZUAT_MCP_SERVER_URL=https://mevzuat.surucu.dev/mcp
+LITERATUR_MCP_SERVER_URL=https://literatur-mcp.surucu.dev/mcp
+YOKTEZ_MCP_SERVER_URL=https://yoktezmcp.fastmcp.app/mcp
+MARKAPATENT_MCP_SERVER_URL=https://markapatent-mcp.fastmcp.app/mcp
 ```
 
 Run `backend/migrations/000_one_shot_schema.sql` in the Supabase SQL editor for a fresh database.

@@ -23,6 +23,7 @@ import {
     deleteDocument,
     deleteProjectFolder,
     getProject,
+    listProjectSourceReferences,
     moveDocumentToFolder,
     moveSubfolderToFolder,
     renameProjectFolder,
@@ -40,10 +41,12 @@ import { useSidebar } from "@/app/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { invalidateDocxBytes } from "@/app/hooks/useFetchDocxBytes";
+import { SourceReferenceCard } from "@/app/components/shared/SourceReferenceCard";
 import type {
     MikeDocument,
     MikeMessage,
     MikeProject,
+    SourceReference,
 } from "@/app/components/shared/types";
 
 interface Props {
@@ -181,9 +184,12 @@ function EditorAssistantThread({
     onProjectDocumentsChanged: (focusDocumentId?: string | null) => void;
     onOpenDocument: (documentId: string) => void;
 }) {
-    const { messages, isResponseLoading, handleChat, cancel } =
+    const { messages, isResponseLoading, handleChat, cancel, chatId } =
         useAssistantChat({ projectId: project.id });
     const lastMutationSignatureRef = useRef("");
+    const [activeTab, setActiveTab] = useState<"chat" | "sources">("chat");
+    const [sources, setSources] = useState<SourceReference[]>([]);
+    const [sourcesLoading, setSourcesLoading] = useState(false);
 
     useEffect(() => {
         const el = messagesContainerRef.current;
@@ -246,6 +252,25 @@ function EditorAssistantThread({
         onProjectDocumentsChanged(projectMutation.focusDocumentId);
     }, [onProjectDocumentsChanged, projectMutation]);
 
+    const loadSources = useCallback(async () => {
+        setSourcesLoading(true);
+        try {
+            const rows = await listProjectSourceReferences(project.id, {
+                chatId: chatId ?? null,
+            });
+            setSources(rows);
+        } catch {
+            setSources([]);
+        } finally {
+            setSourcesLoading(false);
+        }
+    }, [chatId, project.id]);
+
+    useEffect(() => {
+        if (activeTab !== "sources") return;
+        void loadSources();
+    }, [activeTab, loadSources, messages.length]);
+
     return (
         <div
             style={{ width }}
@@ -260,10 +285,56 @@ function EditorAssistantThread({
         >
             <div className="flex h-10 shrink-0 items-center gap-2 border-b border-gray-200 px-4">
                 <BolexLogoIcon size={16} />
-                <span className="text-xs text-gray-700">Proje asistanı</span>
+                <div className="flex rounded-md border border-gray-200 bg-gray-50 p-0.5">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("chat")}
+                        className={`rounded px-2 py-1 text-xs transition-colors ${
+                            activeTab === "chat"
+                                ? "bg-white text-gray-900 shadow-sm"
+                                : "text-gray-500 hover:text-gray-800"
+                        }`}
+                    >
+                        Chat
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("sources")}
+                        className={`rounded px-2 py-1 text-xs transition-colors ${
+                            activeTab === "sources"
+                                ? "bg-white text-gray-900 shadow-sm"
+                                : "text-gray-500 hover:text-gray-800"
+                        }`}
+                    >
+                        Kaynaklar
+                    </button>
+                </div>
             </div>
 
-            {messages.length === 0 ? (
+            {activeTab === "sources" ? (
+                <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50 px-3 py-3">
+                    {sourcesLoading ? (
+                        <div className="flex h-full items-center justify-center">
+                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                        </div>
+                    ) : sources.length > 0 ? (
+                        <div className="space-y-2">
+                            {sources.map((source) => (
+                                <SourceReferenceCard
+                                    key={source.id}
+                                    source={source}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex h-full items-center justify-center px-4 text-center">
+                            <p className="text-xs text-gray-400">
+                                Bu sohbete bağlı kaynak henüz yok.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            ) : messages.length === 0 ? (
                 <AssistantGreeting username={username} />
             ) : (
                 <div

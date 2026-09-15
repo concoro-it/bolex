@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { createClient } from "@supabase/supabase-js";
-import { getSupabaseServiceKey, getSupabaseUrl } from "../lib/supabaseKeys";
+import { createAuthSupabase } from "../lib/supabase";
+import { getSupabaseAnonKey, getSupabaseUrl } from "../lib/supabaseKeys";
 
 export async function requireAuth(
   req: Request,
@@ -14,18 +14,13 @@ export async function requireAuth(
   }
   const token = auth.slice(7).trim();
 
-  const supabaseUrl = getSupabaseUrl();
-  const serviceKey = getSupabaseServiceKey();
-
-  if (!supabaseUrl || !serviceKey) {
+  if (!getSupabaseUrl() || !getSupabaseAnonKey()) {
     res.status(500).json({ detail: "Server auth is not configured" });
     return;
   }
 
-  const admin = createClient(supabaseUrl, serviceKey, {
-    auth: { persistSession: false },
-  });
-  const { data } = await admin.auth.getUser(token);
+  const authClient = createAuthSupabase();
+  const { data } = await authClient.auth.getUser(token);
   if (!data.user) {
     res.status(401).json({ detail: "Invalid or expired token" });
     return;

@@ -17,6 +17,13 @@ import { attachActiveVersionPaths, loadActiveVersion } from "./documentVersions"
 import { callMcpTool } from "./mcp/client";
 import { MCP_TOOL_NAMES, MCP_TOOLS } from "./mcp/tools";
 import {
+    linkSourcesToDocument,
+    recordMcpSourceReference,
+    recordVerificationEvent,
+    summarizeToolArgs,
+    type SourceReferenceRow,
+} from "./verification";
+import {
     streamChatWithTools,
     resolveModel,
     DEFAULT_MAIN_MODEL,
@@ -85,6 +92,9 @@ When the user asks about Turkish law, case law, public decisions, tax rulings, d
 Tool routing:
 - Use Mevzuat MCP for normative legal basis: kanun, yönetmelik, tebliğ, Cumhurbaşkanlığı kararnamesi/kararı/genelgesi, madde text, yürürlük, madde ağacı, and gerekçe. For direct law-number lookups or broad legislation search, prefer search_mevzuat first; then use get_mevzuat_content, search_within_mevzuat, get_mevzuat_gerekce, or get_mevzuat_madde_tree as needed.
 - Use Yargı MCP for case law and legal practice: Yargıtay, Danıştay, Anayasa Mahkemesi, UYAP emsal, court decisions, precedents, KVKK decisions, and GİB özelgeleri.
+- Use Literatür MCP for academic doctrine and article review on DergiPark: first run search_articles, then use get_article_references for bibliography mapping, and pdf_to_html when full-text reading is required.
+- Use YokTez MCP for thesis-level academic depth and literature scans: use search_yok_tez_detailed for targeted search, list_recent_yok_tez for recent corpus browsing, get_yok_tez_thesis_details for rich metadata/abstract/keywords/citation formats, and get_yok_tez_document_markdown for page-level thesis text.
+- Use Marka Patent MCP for TÜRKPATENT registries: use search_trademarks/get_trademark_details for trademark checks, search_patents/get_patent_details for patent prior-art and status review, and search_designs/get_design_details for industrial design registry checks.
 - For drafting, risk analysis, contracts, petitions, or applied legal answers, first establish the normative basis with Mevzuat MCP when relevant, then check precedent/practice with Yargı MCP when the issue depends on interpretation or litigation practice, then draft or analyze.
 - Example: "TBK'ya göre kira uyarlama şartları nelerdir?" -> Mevzuat MCP. "Yargıtay kira uyarlamada ne diyor?" -> Yargı MCP. "Kira uyarlama davası için dilekçe hazırla" -> Mevzuat MCP, then Yargı MCP, then draft.
 
@@ -1506,6 +1516,9 @@ export async function runToolCalls(
     docIndex?: DocIndex,
     turnEditState?: TurnEditState,
     projectId?: string | null,
+    chatId?: string | null,
+    turnSourceReferenceIds?: string[],
+    turnSourceReferences?: SourceReferenceRow[],
 ): Promise<{
     toolResults: unknown[];
     docsRead: { filename: string; document_id?: string }[];
@@ -1514,6 +1527,7 @@ export async function runToolCalls(
     docsReplicated: DocReplicatedResult[];
     workflowsApplied: { workflow_id: string; title: string }[];
     docsEdited: DocEditedResult[];
+    sourceReferences: SourceReferenceRow[];
 }> {
     const toolResults: unknown[] = [];
     const docsRead: { filename: string; document_id?: string }[] = [];
@@ -1526,6 +1540,7 @@ export async function runToolCalls(
     const docsReplicated: DocReplicatedResult[] = [];
     const workflowsApplied: { workflow_id: string; title: string }[] = [];
     const docsEdited: DocEditedResult[] = [];
+    const sourceReferences: SourceReferenceRow[] = [];
 
     for (const tc of toolCalls) {
         let args: Record<string, unknown> = {};
@@ -1785,15 +1800,72 @@ export async function runToolCalls(
                             storage_path: result.storage_path,
                         });
                     }
+                    const visibleSources = turnSourceReferences?.length
+                        ? turnSourceReferences
+                        : sourceReferences;
+                    const annotationsWithSources = result.annotations.map((a) => ({
+                        ...a,
+                        source_references: visibleSources,
+                    }));
                     const payload: DocEditedResult = {
                         filename: docInfo.filename,
                         document_id: indexed.document_id,
                         version_id: result.version_id,
                         version_number: result.version_number,
                         download_url: result.download_url,
-                        annotations: result.annotations,
+                        annotations: annotationsWithSources,
                     };
                     docsEdited.push(payload);
+                    const activeSourceIds = turnSourceReferenceIds ?? [];
+                    for (const annotation of result.annotations) {
+                        const anchor =
+                            annotation.inserted_text ||
+                            annotation.deleted_text ||
+                            annotation.context_before ||
+                            annotation.context_after ||
+                            null;
+                        if (activeSourceIds.length > 0) {
+                            await linkSourcesToDocument(db, {
+                                documentId: indexed.document_id,
+                                documentVersionId: result.version_id,
+                                sourceReferenceIds: activeSourceIds,
+                                anchorText: anchor,
+                                blockKey: annotation.change_id,
+                            });
+                            await recordVerificationEvent(db, {
+                                userId,
+                                projectId,
+                                chatId,
+                                documentId: indexed.document_id,
+                                documentVersionId: result.version_id,
+                                eventType: "source_attached",
+                                eventLabel: "Source attached to AI edit",
+                                sourceReferenceIds: activeSourceIds,
+                                relatedEditId: annotation.edit_id,
+                                metadata: {
+                                    change_id: annotation.change_id,
+                                    anchor_text: anchor?.slice(0, 500) ?? null,
+                                },
+                            });
+                        }
+                        await recordVerificationEvent(db, {
+                            userId,
+                            projectId,
+                            chatId,
+                            documentId: indexed.document_id,
+                            documentVersionId: result.version_id,
+                            eventType: "edit_suggested",
+                            eventLabel: "AI edit suggested",
+                            sourceReferenceIds: activeSourceIds,
+                            relatedEditId: annotation.edit_id,
+                            metadata: {
+                                change_id: annotation.change_id,
+                                inserted_text: annotation.inserted_text?.slice(0, 500),
+                                deleted_text: annotation.deleted_text?.slice(0, 500),
+                                reason: annotation.reason,
+                            },
+                        });
+                    }
                     write(
                         `data: ${JSON.stringify({
                             type: "doc_edited",
@@ -2191,6 +2263,30 @@ export async function runToolCalls(
                     version_id: versionId,
                     version_number: versionNumber,
                 });
+                if (documentId && versionId) {
+                    await recordVerificationEvent(db, {
+                        userId,
+                        projectId,
+                        chatId,
+                        documentId,
+                        documentVersionId: versionId,
+                        eventType: "draft_generated",
+                        eventLabel: "Draft document generated",
+                        sourceReferenceIds: turnSourceReferenceIds ?? [],
+                        metadata: { filename: dlFilename },
+                    });
+                    await recordVerificationEvent(db, {
+                        userId,
+                        projectId,
+                        chatId,
+                        documentId,
+                        documentVersionId: versionId,
+                        eventType: "document_version_created",
+                        eventLabel: "Generated document version created",
+                        sourceReferenceIds: turnSourceReferenceIds ?? [],
+                        metadata: { version_number: versionNumber },
+                    });
+                }
             } else {
                 write(`data: ${JSON.stringify({ type: "doc_created", filename: previewFilename, download_url: "" })}\n\n`);
             }
@@ -2210,7 +2306,29 @@ export async function runToolCalls(
             write(
                 `data: ${JSON.stringify({ type: "tool_call_start", name: tc.function.name })}\n\n`,
             );
+            await recordVerificationEvent(db, {
+                userId,
+                projectId,
+                chatId,
+                eventType: "research_started",
+                eventLabel: tc.function.name,
+                toolName: tc.function.name,
+                toolArgsSummary: summarizeToolArgs(args),
+            });
             const mcpResult = await callMcpTool(tc.function.name, args);
+            const sourceReference = await recordMcpSourceReference(db, {
+                userId,
+                projectId,
+                chatId,
+                toolName: tc.function.name,
+                args,
+                result: mcpResult,
+            });
+            if (sourceReference) {
+                sourceReferences.push(sourceReference);
+                turnSourceReferenceIds?.push(sourceReference.id);
+                turnSourceReferences?.push(sourceReference);
+            }
             toolResults.push({
                 role: "tool",
                 tool_call_id: tc.id,
@@ -2227,6 +2345,7 @@ export async function runToolCalls(
         docsReplicated,
         workflowsApplied,
         docsEdited,
+        sourceReferences,
     };
 }
 
@@ -2333,8 +2452,9 @@ export async function runLLMStream(params: {
      * generated docs still get persisted, but as standalone documents.
      */
     projectId?: string | null;
+    chatId?: string | null;
 }): Promise<{ fullText: string; events: AssistantEvent[] }> {
-    const { apiMessages, docStore, docIndex, userId, db, write, extraTools, workflowStore, tabularStore, buildCitations, model, apiKeys, projectId } = params;
+    const { apiMessages, docStore, docIndex, userId, db, write, extraTools, workflowStore, tabularStore, buildCitations, model, apiKeys, projectId, chatId } = params;
     const activeTools = extraTools?.length
         ? [...TOOLS, ...WORKFLOW_TOOLS, ...MCP_TOOLS, ...extraTools]
         : [...TOOLS, ...WORKFLOW_TOOLS, ...MCP_TOOLS];
@@ -2366,6 +2486,8 @@ export async function runLLMStream(params: {
     // across batches to let subsequent edit_document calls overwrite the
     // turn's existing version instead of creating a new one.
     const turnEditState: TurnEditState = new Map();
+    const turnSourceReferenceIds: string[] = [];
+    const turnSourceReferences: SourceReferenceRow[] = [];
     let fullText = "";
     let iterText = "";
     let iterVisibleText = "";
@@ -2493,6 +2615,7 @@ export async function runLLMStream(params: {
                 docsReplicated,
                 workflowsApplied,
                 docsEdited,
+                sourceReferences: _sourceReferences,
             } = await runToolCalls(
                     toolCalls,
                     docStore,
@@ -2504,6 +2627,9 @@ export async function runLLMStream(params: {
                     docIndex,
                     turnEditState,
                     projectId,
+                    chatId,
+                    turnSourceReferenceIds,
+                    turnSourceReferences,
                 );
             for (const r of docsRead) {
                 events.push({

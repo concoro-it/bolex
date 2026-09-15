@@ -79,6 +79,58 @@ export interface MikeEditAnnotation {
   context_after?: string;
   reason?: string;
   status: "pending" | "accepted" | "rejected";
+  source_references?: SourceReference[];
+}
+
+export interface SourceReference {
+  id: string;
+  user_id?: string;
+  project_id?: string | null;
+  chat_id?: string | null;
+  document_id?: string | null;
+  document_version_id?: string | null;
+  source_type:
+    | "legislation"
+    | "case_law"
+    | "user_document"
+    | "administrative_decision"
+    | "tax_ruling"
+    | "ai_inference";
+  provider: string;
+  tool_name?: string | null;
+  title?: string | null;
+  institution?: string | null;
+  court?: string | null;
+  chamber?: string | null;
+  decision_date?: string | null;
+  case_no?: string | null;
+  decision_no?: string | null;
+  legislation_no?: string | null;
+  article_no?: string | null;
+  url?: string | null;
+  quote?: string | null;
+  raw_payload?: unknown;
+  verification_status:
+    | "verified"
+    | "partial"
+    | "not_found"
+    | "user_document"
+    | "ai_inference";
+  created_at?: string;
+}
+
+export interface DocumentSourceLink {
+  id: string;
+  document_id: string;
+  document_version_id: string | null;
+  source_reference_id: string;
+  anchor_type: "quote" | "block" | "range";
+  anchor_text: string | null;
+  block_key: string | null;
+  from_pos: number | null;
+  to_pos: number | null;
+  created_at?: string;
+  source_references?: SourceReference | SourceReference[] | null;
 }
 
 export type AssistantEvent =

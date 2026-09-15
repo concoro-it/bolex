@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { EditorContent, useEditor, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Extension } from "@tiptap/core";
@@ -19,7 +19,6 @@ import {
     AlignLeft,
     AlignRight,
     Bold,
-    FileText,
     Heading1,
     Heading2,
     Heading3,
@@ -36,6 +35,7 @@ import {
     SquareSplitVertical,
     Table as TableIcon,
     Trash2,
+    X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getApiBaseUrl } from "@/app/lib/apiBase";
@@ -44,6 +44,11 @@ import {
     restoreDocumentVersion,
     type MikeDocumentVersion,
 } from "@/app/lib/mikeApi";
+import {
+    SourceReferenceCard,
+    verificationStatusLabel,
+} from "./SourceReferenceCard";
+import type { DocumentSourceLink, SourceReference } from "./types";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -61,14 +66,7 @@ type SavedVersion = {
 
 const EDITOR_FETCH_TIMEOUT_MS = 45_000;
 const HISTORY_GROUP_SIZE = 10;
-const PAGE_METRICS = {
-    width: 794,
-    height: 1123,
-    margin: 96,
-    gap: 28,
-};
-const PAGE_CONTENT_HEIGHT = PAGE_METRICS.height - PAGE_METRICS.margin * 2;
-const PAGE_SPACER_HEIGHT = PAGE_METRICS.margin * 2 + PAGE_METRICS.gap;
+const sourceDecorationKey = new PluginKey<DecorationSet>("sourceVerification");
 
 interface Props {
     documentId: string;
@@ -111,133 +109,118 @@ const TextAlign = Extension.create({
     },
 });
 
-const VisualPagination = Extension.create({
-    name: "visualPagination",
+const SourceVerification = Extension.create({
+    name: "sourceVerification",
     addProseMirrorPlugins() {
-        const key = new PluginKey<DecorationSet>("visualPagination");
-
         return [
             new Plugin<DecorationSet>({
-                key,
+                key: sourceDecorationKey,
                 state: {
                     init: () => DecorationSet.empty,
                     apply(transaction, decorationSet) {
-                        const next = transaction.getMeta(key);
+                        const next = transaction.getMeta(sourceDecorationKey);
                         if (next instanceof DecorationSet) return next;
                         return decorationSet.map(transaction.mapping, transaction.doc);
                     },
                 },
                 props: {
                     decorations(state) {
-                        return key.getState(state);
+                        return sourceDecorationKey.getState(state);
                     },
-                },
-                view(view) {
-                    let rafId: number | null = null;
-                    let lastSignature = "";
-
-                    const schedule = () => {
-                        if (rafId !== null) return;
-                        rafId = window.requestAnimationFrame(() => {
-                            rafId = null;
-
-                            const decorations: Decoration[] = [];
-                            const signatures: string[] = [];
-                            let nextBreak = PAGE_CONTENT_HEIGHT;
-                            let pageNumber = 2;
-
-                            view.state.doc.descendants((node, pos) => {
-                                if (view.state.doc.resolve(pos).depth !== 0) {
-                                    return false;
-                                }
-                                if (!node.isBlock || pos === 0) return false;
-                                const dom = view.nodeDOM(pos);
-                                if (!(dom instanceof HTMLElement)) return false;
-                                const blockBottom =
-                                    dom.offsetTop + dom.offsetHeight;
-                                if (blockBottom <= nextBreak) return false;
-
-                                const targetPage = pageNumber;
-                                const contentFillHeight = Math.max(
-                                    0,
-                                    nextBreak - dom.offsetTop,
-                                );
-                                const spacerHeight =
-                                    contentFillHeight + PAGE_SPACER_HEIGHT;
-                                signatures.push(`${pos}:${spacerHeight}`);
-                                decorations.push(
-                                    Decoration.widget(
-                                        pos,
-                                        () => {
-                                            const spacer =
-                                                document.createElement("div");
-                                            spacer.className =
-                                                "docx-pagination-spacer";
-                                            spacer.contentEditable = "false";
-                                            spacer.setAttribute(
-                                                "aria-hidden",
-                                                "true",
-                                            );
-                                            spacer.style.setProperty(
-                                                "--docx-spacer-height",
-                                                `${spacerHeight}px`,
-                                            );
-                                            spacer.style.setProperty(
-                                                "--docx-spacer-content-fill",
-                                                `${contentFillHeight}px`,
-                                            );
-
-                                            const label =
-                                                document.createElement("span");
-                                            label.textContent = `Sayfa ${targetPage}`;
-                                            spacer.appendChild(label);
-                                            return spacer;
-                                        },
-                                        {
-                                            key: `page-${targetPage}-${pos}`,
-                                            side: -1,
-                                        },
-                                    ),
-                                );
-
-                                pageNumber += 1;
-                                nextBreak += PAGE_CONTENT_HEIGHT + PAGE_SPACER_HEIGHT;
-                                return false;
-                            });
-
-                            const signature = signatures.join(":");
-                            if (signature === lastSignature) return;
-                            lastSignature = signature;
-
-                            view.dispatch(
-                                view.state.tr
-                                    .setMeta(
-                                        key,
-                                        DecorationSet.create(
-                                            view.state.doc,
-                                            decorations,
-                                        ),
-                                    )
-                                    .setMeta("addToHistory", false),
-                            );
-                        });
-                    };
-
-                    schedule();
-
-                    return {
-                        update: schedule,
-                        destroy() {
-                            if (rafId !== null) {
-                                window.cancelAnimationFrame(rafId);
-                            }
-                        },
-                    };
                 },
             }),
         ];
     },
 });
+
+function activeSourceForLink(
+    links: DocumentSourceLink[],
+    linkId: string | null,
+): SourceReference | null {
+    if (!linkId) return null;
+    const link = links.find((item) => item.id === linkId);
+    return link ? sourceFromLink(link) : null;
+}
+
+function sourceFromLink(link: DocumentSourceLink): SourceReference | null {
+    const source = link.source_references;
+    if (Array.isArray(source)) return source[0] ?? null;
+    return source ?? null;
+}
+
+function normalizeAnchorText(text: string) {
+    return text.replace(/\s+/g, " ").trim();
+}
+
+function normalizeAnchorSearchText(text: string) {
+    return normalizeAnchorText(text).toLocaleLowerCase("tr-TR");
+}
+
+function buildSourceDecorations(
+    doc: Parameters<typeof DecorationSet.create>[0],
+    links: DocumentSourceLink[],
+    activeLinkId: string | null,
+) {
+    const decorations: Decoration[] = [];
+    for (const link of links) {
+        const source = sourceFromLink(link);
+        const anchor = normalizeAnchorText(link.anchor_text ?? "");
+        if (!source || !anchor) continue;
+        const needle = anchor.slice(0, 220);
+        const searchNeedle = normalizeAnchorSearchText(needle);
+        const statusLabel = verificationStatusLabel(source.verification_status);
+        const activeClass =
+            link.id === activeLinkId ? " source-verification-active" : "";
+        doc.descendants((node, pos) => {
+            if (!node.isTextblock) return true;
+            const blockText = normalizeAnchorText(node.textContent);
+            const index = normalizeAnchorSearchText(blockText).indexOf(searchNeedle);
+            if (index < 0) return true;
+            const from = pos + 1 + index;
+            const to = Math.min(from + needle.length, pos + 1 + node.textContent.length);
+            decorations.push(
+                Decoration.inline(from, to, {
+                    class: `source-verification-mark source-verification-${source.verification_status}${activeClass}`,
+                    "data-source-link-id": link.id,
+                    title: `Kaynak doğrulaması: ${statusLabel}`,
+                }),
+            );
+            decorations.push(
+                Decoration.widget(
+                    to,
+                    () => {
+                        const indicator = document.createElement("button");
+                        indicator.type = "button";
+                        indicator.className = `source-verification-indicator source-verification-${source.verification_status}${activeClass}`;
+                        indicator.contentEditable = "false";
+                        indicator.dataset.sourceLinkId = link.id;
+                        indicator.title = `Kaynak doğrulaması: ${statusLabel}`;
+                        indicator.setAttribute("aria-label", indicator.title);
+                        indicator.setAttribute("data-status", source.verification_status);
+
+                        const dot = document.createElement("span");
+                        dot.className = "source-verification-indicator-dot";
+                        dot.setAttribute("aria-hidden", "true");
+                        indicator.appendChild(dot);
+
+                        const label = document.createElement("span");
+                        label.className = "source-verification-indicator-label";
+                        label.textContent = statusLabel;
+                        indicator.appendChild(label);
+
+                        return indicator;
+                    },
+                    {
+                        key: `source-verification-${link.id}`,
+                        side: 1,
+                    },
+                ),
+            );
+            return false;
+        });
+    }
+    return DecorationSet.create(doc, decorations);
+}
 
 function ToolbarButton({
     active,
@@ -370,7 +353,15 @@ export function DocxTiptapEditor({
     const saveAgainRef = useRef(false);
     const savingRef = useRef(false);
     const editorFrameRef = useRef<HTMLDivElement | null>(null);
-    const [pageCount, setPageCount] = useState(1);
+    const [sourceLinks, setSourceLinks] = useState<DocumentSourceLink[]>([]);
+    const [activeSourceLinkId, setActiveSourceLinkId] = useState<string | null>(
+        null,
+    );
+    const [sourceCardPos, setSourceCardPos] = useState<{
+        top: number;
+        left: number;
+    } | null>(null);
+    const activeSource = activeSourceForLink(sourceLinks, activeSourceLinkId);
 
     useEffect(() => {
         onDirtyChangeRef.current = onDirtyChange;
@@ -396,7 +387,7 @@ export function DocxTiptapEditor({
             TableRow,
             TableHeader,
             TableCell,
-            VisualPagination,
+            SourceVerification,
         ],
         [],
     );
@@ -409,6 +400,28 @@ export function DocxTiptapEditor({
             attributes: {
                 class: "docx-tiptap-content",
             },
+            handleClick: (_view, _pos, event) => {
+                const target = event.target as HTMLElement | null;
+                const mark = target?.closest("[data-source-link-id]") as
+                    | HTMLElement
+                    | null;
+                if (!mark) {
+                    setActiveSourceLinkId(null);
+                    setSourceCardPos(null);
+                    return false;
+                }
+                const frameRect = editorFrameRef.current?.getBoundingClientRect();
+                const rect = mark.getBoundingClientRect();
+                setActiveSourceLinkId(mark.dataset.sourceLinkId ?? null);
+                setSourceCardPos({
+                    top: rect.bottom - (frameRect?.top ?? 0) + 8,
+                    left: Math.min(
+                        rect.left - (frameRect?.left ?? 0),
+                        Math.max(16, (frameRect?.width ?? 360) - 340),
+                    ),
+                });
+                return true;
+            },
         },
         onUpdate: () => {
             setDirty(true);
@@ -416,48 +429,6 @@ export function DocxTiptapEditor({
             setNotice(null);
         },
     });
-
-    const updatePageCount = useCallback(() => {
-        const proseMirror = editorFrameRef.current?.querySelector(
-            ".ProseMirror",
-        ) as HTMLElement | null;
-        const measuredHeight = proseMirror?.scrollHeight ?? 0;
-        let nextPageCount = 1;
-        let capacity = PAGE_CONTENT_HEIGHT;
-        while (measuredHeight > capacity + 1) {
-            nextPageCount += 1;
-            capacity += PAGE_CONTENT_HEIGHT + PAGE_SPACER_HEIGHT;
-        }
-        setPageCount((current) =>
-            current === nextPageCount ? current : nextPageCount,
-        );
-    }, []);
-
-    useEffect(() => {
-        if (!editor) return;
-
-        const update = () => window.requestAnimationFrame(updatePageCount);
-        update();
-        editor.on("update", update);
-        editor.on("selectionUpdate", update);
-        window.addEventListener("resize", update);
-
-        const proseMirror = editorFrameRef.current?.querySelector(".ProseMirror");
-        const resizeObserver =
-            typeof ResizeObserver !== "undefined"
-                ? new ResizeObserver(update)
-                : null;
-        if (resizeObserver && proseMirror) {
-            resizeObserver.observe(proseMirror);
-        }
-
-        return () => {
-            editor.off("update", update);
-            editor.off("selectionUpdate", update);
-            window.removeEventListener("resize", update);
-            resizeObserver?.disconnect();
-        };
-    }, [editor, updatePageCount]);
 
     const loadContent = useCallback(async () => {
         if (!editor) return;
@@ -515,13 +486,19 @@ export function DocxTiptapEditor({
                     : null,
             );
             setPendingCount(pendingEditCount);
+            setSourceLinks(
+                Array.isArray(data.source_links)
+                    ? (data.source_links as DocumentSourceLink[])
+                    : [],
+            );
+            setActiveSourceLinkId(null);
+            setSourceCardPos(null);
             setLastSavedAt(new Date());
             editor.commands.setContent(
                 typeof data.html === "string" ? data.html : "<p></p>",
                 { emitUpdate: false },
             );
             editor.setEditable(pendingEditCount === 0);
-            window.requestAnimationFrame(updatePageCount);
             setDirty(false);
             onDirtyChangeRef.current?.(false);
         } catch (e) {
@@ -529,11 +506,25 @@ export function DocxTiptapEditor({
         } finally {
             setLoading(false);
         }
-    }, [documentId, editor, updatePageCount, versionId]);
+    }, [documentId, editor, versionId]);
 
     useEffect(() => {
         void loadContent();
     }, [loadContent]);
+
+    useEffect(() => {
+        if (!editor) return;
+        const decorations = buildSourceDecorations(
+            editor.state.doc,
+            sourceLinks,
+            activeSourceLinkId,
+        );
+        editor.view.dispatch(
+            editor.state.tr
+                .setMeta(sourceDecorationKey, decorations)
+                .setMeta("addToHistory", false),
+        );
+    }, [activeSourceLinkId, editor, sourceLinks]);
 
     const setAlign = (value: "left" | "center" | "right" | "justify") => {
         if (!editor) return;
@@ -702,10 +693,6 @@ export function DocxTiptapEditor({
                     >
                         {subtitle}
                     </p>
-                </div>
-                <div className="mr-2 hidden items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-medium text-gray-600 md:inline-flex">
-                    <FileText className="h-3.5 w-3.5 text-gray-500" />
-                    <span>{pageCount} sayfa</span>
                 </div>
                 <ToolbarButton
                     label="Bold"
@@ -1082,25 +1069,33 @@ export function DocxTiptapEditor({
                         <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
                     </div>
                 ) : (
-                    <div
-                        className="docx-page-shell"
-                        style={
-                            {
-                                "--docx-page-width": `${PAGE_METRICS.width}px`,
-                                "--docx-page-height": `${PAGE_METRICS.height}px`,
-                                "--docx-page-margin": `${PAGE_METRICS.margin}px`,
-                                "--docx-page-gap": `${PAGE_METRICS.gap}px`,
-                                "--docx-page-content-height": `${PAGE_CONTENT_HEIGHT}px`,
-                                "--docx-page-min-height": `${
-                                    PAGE_METRICS.height * pageCount +
-                                    PAGE_METRICS.gap * (pageCount - 1)
-                                }px`,
-                            } as CSSProperties
-                        }
-                    >
-                        <div ref={editorFrameRef} className="docx-editor-frame">
+                    <div ref={editorFrameRef} className="docx-editor-frame">
+                        <div className="docx-editor-sheet">
                             <EditorContent editor={editor} />
                         </div>
+                        {activeSource && sourceCardPos && (
+                            <div
+                                className="absolute z-50 w-[320px]"
+                                style={{
+                                    top: sourceCardPos.top,
+                                    left: sourceCardPos.left,
+                                }}
+                            >
+                                <button
+                                    type="button"
+                                    aria-label="Kaynak kartını kapat"
+                                    title="Kapat"
+                                    onClick={() => {
+                                        setActiveSourceLinkId(null);
+                                        setSourceCardPos(null);
+                                    }}
+                                    className="absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                                <SourceReferenceCard source={activeSource} />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

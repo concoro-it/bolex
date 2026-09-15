@@ -33,15 +33,18 @@ function resolveKey(role: "anon" | "service_role"): string {
       ? process.env.SUPABASE_SERVICE_ROLE_KEY
       : process.env.SUPABASE_ANON_KEY ??
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+        process.env.SUPABASE_PUBLISHABLE_KEY ??
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
         process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
   if (explicit) return explicit;
 
   const legacy = process.env.SUPABASE_SECRET_KEY ?? "";
   if (!legacy) return "";
 
-  // Some self-hosted Supabase installs expose the raw JWT secret here.
-  // PostgREST expects a signed anon/service-role JWT as the API key.
-  if (!legacy.startsWith("eyJ")) {
+  // Hosted Supabase's newer API keys are opaque `sb_secret_...` values and
+  // must be passed through unchanged. Only treat an unprefixed legacy value
+  // as a raw JWT signing secret (as used by some self-hosted installations).
+  if (!legacy.startsWith("eyJ") && !legacy.startsWith("sb_")) {
     return signSupabaseJwt(legacy, role);
   }
 

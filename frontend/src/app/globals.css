@@ -498,100 +498,51 @@
 
 .docx-editor-scroll {
     background:
-        radial-gradient(circle at top left, rgba(15, 23, 42, 0.06), transparent 34rem),
-        linear-gradient(180deg, #eef1f5 0%, #e5e7eb 100%);
-}
-
-.docx-page-shell {
-    position: relative;
-    width: min(var(--docx-page-width), 100%);
-    min-height: var(--docx-page-min-height);
-    margin: 0 auto;
-    background:
-        repeating-linear-gradient(
-            180deg,
-            #ffffff 0,
-            #ffffff var(--docx-page-height),
-            #d8dde6 var(--docx-page-height),
-            #d8dde6 calc(var(--docx-page-height) + var(--docx-page-gap))
-        );
-    border-right: 1px solid #d8dee8;
-    border-left: 1px solid #d8dee8;
-    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+        radial-gradient(circle at top left, rgba(15, 23, 42, 0.05), transparent 30rem),
+        linear-gradient(180deg, #eceff3 0%, #e2e6ec 100%);
 }
 
 .docx-editor-frame {
     position: relative;
-    z-index: 2;
-    min-height: calc(var(--docx-page-min-height) - var(--docx-page-margin) * 2);
-    padding: var(--docx-page-margin);
+    display: flex;
+    justify-content: center;
+    min-width: 0;
 }
 
-.docx-pagination-spacer {
+.docx-editor-sheet {
     position: relative;
-    display: block !important;
-    clear: both;
+    width: min(100%, 840px);
     box-sizing: border-box;
-    width: auto;
-    height: var(--docx-spacer-height);
-    margin-right: calc(var(--docx-page-margin) * -1);
-    margin-left: calc(var(--docx-page-margin) * -1);
-    line-height: 1;
-    pointer-events: none;
+    border: 1px solid #d9e0e8;
+    border-radius: 8px;
     background:
-        linear-gradient(
-            180deg,
-            #ffffff 0,
-            #ffffff calc(var(--docx-spacer-content-fill) + var(--docx-page-margin)),
-            #d8dde6 calc(var(--docx-spacer-content-fill) + var(--docx-page-margin)),
-            #d8dde6 calc(var(--docx-spacer-content-fill) + var(--docx-page-margin) + var(--docx-page-gap)),
-            #ffffff calc(var(--docx-spacer-content-fill) + var(--docx-page-margin) + var(--docx-page-gap)),
-            #ffffff 100%
-        );
-    color: #64748b;
-    font-family: ui-sans-serif, system-ui, sans-serif;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 251, 252, 0.98)),
+        #ffffff;
+    box-shadow:
+        0 24px 64px rgba(15, 23, 42, 0.12),
+        0 2px 10px rgba(15, 23, 42, 0.06);
+    padding: clamp(20px, 3.4vw, 64px) clamp(22px, 4vw, 78px);
 }
 
-.docx-pagination-spacer::before,
-.docx-pagination-spacer::after {
+.docx-editor-sheet::before {
     content: "";
     position: absolute;
-    top: calc(var(--docx-spacer-content-fill) + var(--docx-page-margin) + var(--docx-page-gap) / 2);
-    height: 1px;
-    background: rgba(100, 116, 139, 0.22);
+    inset: 10px;
+    pointer-events: none;
+    border-radius: 6px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0) 0, rgba(15, 23, 42, 0.012) 100%);
+    opacity: 0.9;
 }
 
-.docx-pagination-spacer::before {
-    right: calc(50% + 58px);
-    left: 0;
-}
-
-.docx-pagination-spacer::after {
-    right: 0;
-    left: calc(50% + 58px);
-}
-
-.docx-pagination-spacer span {
-    position: absolute;
-    top: calc(var(--docx-spacer-content-fill) + var(--docx-page-margin) + var(--docx-page-gap) / 2);
-    left: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transform: translate(-50%, -50%);
-    border: 1px solid #cbd5e1;
-    border-radius: 999px;
-    background: #f8fafc;
-    padding: 3px 10px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+.docx-editor-sheet > .docx-tiptap-content {
+    position: relative;
+    z-index: 1;
 }
 
 .docx-tiptap-content {
-    min-height: var(--docx-page-content-height);
+    width: 100%;
+    min-height: 0;
     outline: none;
     color: #111827;
     font-family: "Times New Roman", Times, serif;
@@ -605,10 +556,115 @@
     text-align: justify;
 }
 
+.docx-tiptap-content > *:first-child {
+    margin-top: 0;
+}
+
+.docx-tiptap-content > *:last-child {
+    margin-bottom: 0;
+}
+
+.docx-tiptap-content .source-verification-mark {
+    cursor: pointer;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.45);
+    background: rgba(59, 130, 246, 0.06);
+    box-shadow: inset 2px 0 0 rgba(59, 130, 246, 0.45);
+}
+
+.docx-tiptap-content .source-verification-mark.source-verification-active {
+    background: rgba(59, 130, 246, 0.13);
+    outline: 1px solid rgba(59, 130, 246, 0.28);
+}
+
+.docx-tiptap-content .source-verification-verified,
+.docx-tiptap-content .source-verification-user_document {
+    border-bottom-color: rgba(16, 185, 129, 0.55);
+    background: rgba(16, 185, 129, 0.07);
+    box-shadow: inset 2px 0 0 rgba(16, 185, 129, 0.5);
+}
+
+.docx-tiptap-content .source-verification-partial {
+    border-bottom-color: rgba(245, 158, 11, 0.55);
+    background: rgba(245, 158, 11, 0.08);
+    box-shadow: inset 2px 0 0 rgba(245, 158, 11, 0.5);
+}
+
+.docx-tiptap-content .source-verification-not_found {
+    border-bottom-color: rgba(239, 68, 68, 0.55);
+    background: rgba(239, 68, 68, 0.08);
+    box-shadow: inset 2px 0 0 rgba(239, 68, 68, 0.5);
+}
+
+.docx-tiptap-content .source-verification-indicator {
+    display: inline-flex;
+    align-items: center;
+    max-width: 11rem;
+    height: 1.35rem;
+    margin: 0 0.2rem;
+    border: 1px solid rgba(59, 130, 246, 0.28);
+    border-radius: 999px;
+    background: #eff6ff;
+    padding: 0 0.45rem;
+    color: #1d4ed8;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.64rem;
+    font-weight: 600;
+    line-height: 1;
+    vertical-align: 0.12rem;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.docx-tiptap-content .source-verification-indicator:hover,
+.docx-tiptap-content .source-verification-indicator.source-verification-active {
+    box-shadow:
+        0 0 0 2px rgba(59, 130, 246, 0.14),
+        0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.docx-tiptap-content .source-verification-indicator-dot {
+    width: 0.42rem;
+    height: 0.42rem;
+    margin-right: 0.3rem;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.docx-tiptap-content .source-verification-indicator-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.docx-tiptap-content .source-verification-indicator.source-verification-verified,
+.docx-tiptap-content .source-verification-indicator.source-verification-user_document {
+    border-color: rgba(16, 185, 129, 0.26);
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.docx-tiptap-content .source-verification-indicator.source-verification-partial {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.docx-tiptap-content .source-verification-indicator.source-verification-not_found {
+    border-color: rgba(239, 68, 68, 0.28);
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.docx-tiptap-content .source-verification-indicator.source-verification-ai_inference {
+    border-color: rgba(99, 102, 241, 0.28);
+    background: #eef2ff;
+    color: #4338ca;
+}
+
 .docx-tiptap-content h1,
 .docx-tiptap-content h2,
 .docx-tiptap-content h3 {
-    margin: 1.1rem 0 0.55rem;
+    margin: 1.15rem 0 0.55rem;
     font-weight: 700;
     line-height: 1.25;
 }
@@ -617,11 +673,12 @@
     font-size: 1.55rem;
     text-align: center;
     text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
 .docx-tiptap-content h2 {
     font-size: 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #dfe5ed;
     padding-bottom: 0.25rem;
 }
 
@@ -645,16 +702,16 @@
 
 .docx-tiptap-content blockquote {
     margin: 1rem 0;
-    border-left: 3px solid #d1d5db;
+    border-left: 3px solid #cfd7e2;
     padding: 0.2rem 0 0.2rem 1rem;
-    color: #374151;
+    color: #334155;
     font-style: italic;
 }
 
 .docx-tiptap-content hr {
     margin: 1.5rem 0;
     border: 0;
-    border-top: 1px solid #d1d5db;
+    border-top: 1px solid #d8e0e8;
 }
 
 .docx-tiptap-content table {

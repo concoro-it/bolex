@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { getApiBaseUrl } from "@/app/lib/apiBase";
 import type {
     AssistantEvent,
+    DocumentSourceLink,
     MikeChat,
     MikeChatDetailOut,
     MikeCitationAnnotation,
@@ -14,6 +15,7 @@ import type {
     MikeFolder,
     MikeMessage,
     MikeProject,
+    SourceReference,
     MikeWorkflow,
     TabularReview,
     TabularReviewDetailOut,
@@ -99,6 +101,24 @@ export async function deleteAccount(): Promise<void> {
 
 export async function getProject(projectId: string): Promise<MikeProject> {
     return apiRequest<MikeProject>(`/projects/${projectId}`);
+}
+
+export async function listProjectSourceReferences(
+    projectId: string,
+    params?: {
+        chatId?: string | null;
+        documentId?: string | null;
+        versionId?: string | null;
+    },
+): Promise<SourceReference[]> {
+    const qs = new URLSearchParams();
+    if (params?.chatId) qs.set("chat_id", params.chatId);
+    if (params?.documentId) qs.set("document_id", params.documentId);
+    if (params?.versionId) qs.set("version_id", params.versionId);
+    const suffix = qs.toString() ? `?${qs.toString()}` : "";
+    return apiRequest<SourceReference[]>(
+        `/projects/${projectId}/source-references${suffix}`,
+    );
 }
 
 export async function updateProject(
@@ -237,6 +257,30 @@ export async function listDocumentVersions(
     versions: MikeDocumentVersion[];
 }> {
     return apiRequest(`/single-documents/${documentId}/versions`);
+}
+
+export async function listDocumentSourceReferences(
+    documentId: string,
+    versionId?: string | null,
+): Promise<SourceReference[]> {
+    const qs = versionId
+        ? `?version_id=${encodeURIComponent(versionId)}`
+        : "";
+    return apiRequest<SourceReference[]>(
+        `/single-documents/${documentId}/source-references${qs}`,
+    );
+}
+
+export async function listDocumentSourceLinks(
+    documentId: string,
+    versionId?: string | null,
+): Promise<DocumentSourceLink[]> {
+    const qs = versionId
+        ? `?version_id=${encodeURIComponent(versionId)}`
+        : "";
+    return apiRequest<DocumentSourceLink[]>(
+        `/single-documents/${documentId}/source-links${qs}`,
+    );
 }
 
 export async function uploadDocumentVersion(

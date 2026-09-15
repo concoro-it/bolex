@@ -1,6 +1,7 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import path from "path";
 import { chatRouter } from "./routes/chat";
 import { projectsRouter } from "./routes/projects";
 import { projectChatRouter } from "./routes/projectChat";
@@ -9,6 +10,12 @@ import { tabularRouter } from "./routes/tabular";
 import { workflowsRouter } from "./routes/workflows";
 import { userRouter } from "./routes/user";
 import { downloadsRouter } from "./routes/downloads";
+
+// Resolve the local file from the backend source/dist directory rather than
+// relying on whichever directory the process was launched from. Deployed
+// environments can still provide variables directly, which dotenv preserves.
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;

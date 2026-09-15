@@ -23,6 +23,7 @@ import {
 } from "../lib/documentVersions";
 import { ensureDocAccess } from "../lib/access";
 import { singleFileUpload } from "../lib/upload";
+import { recordVerificationEvent } from "../lib/verification";
 
 export const documentsRouter = Router();
 const ALLOWED_TYPES = new Set(["pdf", "docx", "doc"]);
@@ -36,8 +37,296 @@ type TiptapNode = {
   content?: TiptapNode[];
 };
 
-const VERSIONED_SOURCES = ["upload", "user_upload", "assistant_edit", "manual_edit", "generated"];
+const VERSIONED_SOURCES = ["upload", "user_upload", "assistant_edit", "manual_edit", "generated", "user_accept", "user_reject"];
 const EDITOR_CONVERSION_TIMEOUT_MS = 45_000;
+const SOURCE_REFERENCE_SELECT =
+  "id, document_id, document_version_id, chat_id, source_type, provider, tool_name, title, institution, court, chamber, decision_date, case_no, decision_no, legislation_no, article_no, url, quote, verification_status, created_at";
+
+type SourceReferenceRow = {
+  id: string;
+  document_id?: string | null;
+  document_version_id?: string | null;
+  chat_id?: string | null;
+  source_type: string;
+  provider: string;
+  tool_name?: string | null;
+  title?: string | null;
+  institution?: string | null;
+  court?: string | null;
+  chamber?: string | null;
+  decision_date?: string | null;
+  case_no?: string | null;
+  decision_no?: string | null;
+  legislation_no?: string | null;
+  article_no?: string | null;
+  url?: string | null;
+  quote?: string | null;
+  verification_status: string;
+  created_at?: string;
+};
+
+async function loadDocumentSourceLinks(
+  db: ReturnType<typeof createServerSupabase>,
+  documentId: string,
+  projectId?: string | null,
+  versionId?: string | null,
+) {
+  let query = db
+    .from("document_source_links")
+    .select(
+      `id, document_id, document_version_id, source_reference_id, anchor_type, anchor_text, block_key, from_pos, to_pos, created_at, source_references(${SOURCE_REFERENCE_SELECT})`,
+    )
+    .eq("document_id", documentId)
+    .order("created_at", { ascending: false });
+  if (versionId) query = query.eq("document_version_id", versionId);
+  const { data, error } = await query;
+  if (error) {
+    console.warn("[source-links] query failed", error);
+    return [];
+  }
+  if (data?.length) return data;
+
+  return loadFallbackDocumentSourceLinks(db, documentId, projectId, versionId);
+}
+
+async function loadFallbackDocumentSourceLinks(
+  db: ReturnType<typeof createServerSupabase>,
+  documentId: string,
+  projectId?: string | null,
+  versionId?: string | null,
+) {
+  const { data: edits, error: editsError } = await db
+    .from("document_edits")
+    .select("id, version_id, change_id, inserted_text, deleted_text, context_before, context_after, created_at")
+    .eq("document_id", documentId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (editsError || !edits?.length) {
+    if (editsError) console.warn("[source-links:fallback] edits query failed", editsError);
+    return loadQuoteBasedSourceLinks(db, documentId, projectId, versionId);
+  }
+
+  const editIds = edits.map((edit) => edit.id as string).filter(Boolean);
+  const { data: events, error: eventsError } = await db
+    .from("verification_events")
+    .select("related_edit_id, source_reference_ids")
+    .eq("document_id", documentId)
+    .in("related_edit_id", editIds);
+  if (eventsError || !events?.length) {
+    if (eventsError) console.warn("[source-links:fallback] events query failed", eventsError);
+    return loadQuoteBasedSourceLinks(db, documentId, projectId, versionId);
+  }
+
+  const sourceIds = [
+    ...new Set(
+      events.flatMap((event) =>
+        Array.isArray(event.source_reference_ids)
+          ? (event.source_reference_ids as string[])
+          : [],
+      ),
+    ),
+  ].filter(Boolean);
+  if (!sourceIds.length) return loadQuoteBasedSourceLinks(db, documentId, projectId, versionId);
+
+  const { data: sources, error: sourcesError } = await db
+    .from("source_references")
+    .select(SOURCE_REFERENCE_SELECT)
+    .in("id", sourceIds);
+  if (sourcesError || !sources?.length) {
+    if (sourcesError) console.warn("[source-links:fallback] sources query failed", sourcesError);
+    return loadQuoteBasedSourceLinks(db, documentId, projectId, versionId);
+  }
+
+  const sourcesById = new Map(
+    (sources as SourceReferenceRow[]).map((source) => [source.id, source]),
+  );
+  const editsById = new Map(edits.map((edit) => [edit.id as string, edit]));
+
+  const eventLinks = events.flatMap((event) => {
+    const editId = event.related_edit_id as string | null;
+    if (!editId) return [];
+    const edit = editsById.get(editId);
+    if (!edit) return [];
+    const anchorText =
+      (edit.inserted_text as string | null) ||
+      (edit.deleted_text as string | null) ||
+      (edit.context_before as string | null) ||
+      (edit.context_after as string | null) ||
+      null;
+    if (!anchorText) return [];
+
+    const eventSourceIds = Array.isArray(event.source_reference_ids)
+      ? (event.source_reference_ids as string[])
+      : [];
+    return eventSourceIds.flatMap((sourceId) => {
+      const source = sourcesById.get(sourceId);
+      if (!source) return [];
+      return [
+        {
+          id: `fallback:${editId}:${sourceId}`,
+          document_id: documentId,
+          document_version_id: versionId ?? (edit.version_id as string | null),
+          source_reference_id: sourceId,
+          anchor_type: "quote",
+          anchor_text: anchorText,
+          block_key: (edit.change_id as string | null) ?? null,
+          from_pos: null,
+          to_pos: null,
+          created_at: (edit.created_at as string | null) ?? null,
+          source_references: source,
+        },
+      ];
+    });
+  });
+  if (eventLinks.length) return eventLinks;
+  return loadQuoteBasedSourceLinks(db, documentId, projectId, versionId);
+}
+
+async function loadQuoteBasedSourceLinks(
+  db: ReturnType<typeof createServerSupabase>,
+  documentId: string,
+  projectId?: string | null,
+  versionId?: string | null,
+) {
+  let query = db
+    .from("source_references")
+    .select(SOURCE_REFERENCE_SELECT)
+    .eq("document_id", documentId)
+    .not("quote", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(80);
+  if (versionId) query = query.eq("document_version_id", versionId);
+
+  const { data: exactSources, error: exactError } = await query;
+  if (exactError) console.warn("[source-links:quote-fallback] exact query failed", exactError);
+
+  let sources = exactSources as SourceReferenceRow[] | null;
+  if (!sources?.length && versionId) {
+    const fallback = await db
+      .from("source_references")
+      .select(SOURCE_REFERENCE_SELECT)
+      .eq("document_id", documentId)
+      .not("quote", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(80);
+    if (fallback.error) {
+      console.warn("[source-links:quote-fallback] document query failed", fallback.error);
+      return loadProjectMcpSourceLinks(db, documentId, projectId);
+    }
+    sources = fallback.data as SourceReferenceRow[] | null;
+  }
+  if (!sources?.length) return loadProjectMcpSourceLinks(db, documentId, projectId);
+
+  const quoteLinks = sources.flatMap((source) => {
+    const anchorText = source.quote?.trim();
+    if (!anchorText) return [];
+    return [
+      {
+        id: `source-ref:${source.id}`,
+        document_id: documentId,
+        document_version_id: versionId ?? source.document_version_id ?? null,
+        source_reference_id: source.id,
+        anchor_type: "quote",
+        anchor_text: anchorText,
+        block_key: null,
+        from_pos: null,
+        to_pos: null,
+        created_at: source.created_at ?? null,
+        source_references: source,
+      },
+    ];
+  });
+  return [
+    ...quoteLinks,
+    ...(await loadProjectMcpSourceLinks(db, documentId, projectId)),
+  ];
+}
+
+async function loadProjectMcpSourceLinks(
+  db: ReturnType<typeof createServerSupabase>,
+  documentId: string,
+  projectId?: string | null,
+) {
+  if (!projectId) return [];
+  const { data, error } = await db
+    .from("source_references")
+    .select(SOURCE_REFERENCE_SELECT)
+    .eq("project_id", projectId)
+    .is("document_id", null)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (error || !data?.length) {
+    if (error) console.warn("[source-links:mcp-fallback] query failed", error);
+    return [];
+  }
+
+  const seen = new Set<string>();
+  return (data as SourceReferenceRow[]).flatMap((source) => {
+    const anchors = sourceAnchorCandidates(source);
+    return anchors.flatMap((anchorText) => {
+      const key = `${source.id}:${anchorText.toLocaleLowerCase("tr-TR")}`;
+      if (seen.has(key)) return [];
+      seen.add(key);
+      return [
+        {
+          id: `mcp-source:${source.id}:${seen.size}`,
+          document_id: documentId,
+          document_version_id: null,
+          source_reference_id: source.id,
+          anchor_type: "quote",
+          anchor_text: anchorText,
+          block_key: null,
+          from_pos: null,
+          to_pos: null,
+          created_at: source.created_at ?? null,
+          source_references: source,
+        },
+      ];
+    });
+  });
+}
+
+function sourceAnchorCandidates(source: SourceReferenceRow) {
+  const candidates = new Set<string>();
+  const add = (value: string | null | undefined) => {
+    const normalized = value?.replace(/\s+/g, " ").trim();
+    if (normalized && normalized.length >= 4 && normalized.length <= 180) {
+      candidates.add(normalized);
+    }
+  };
+
+  add(source.title);
+  add(source.legislation_no);
+  add(source.article_no);
+  if (source.legislation_no && source.title) {
+    add(`${source.legislation_no} sayılı ${source.title}`);
+  }
+
+  const quote = source.quote ?? "";
+  const bracketLawMatch = quote.match(/\[(\d{3,5})\]\s+([A-ZÇĞİÖŞÜ\s]+KANUNU)/i);
+  if (bracketLawMatch) {
+    const lawNo = bracketLawMatch[1];
+    const lawName = titleCaseTurkish(bracketLawMatch[2]);
+    add(lawName);
+    add(`${lawNo} sayılı ${lawName}`);
+  }
+
+  const lawNameMatch = quote.match(/([A-ZÇĞİÖŞÜ][A-ZÇĞİÖŞÜ\s]{8,}?KANUNU)/i);
+  if (lawNameMatch) add(titleCaseTurkish(lawNameMatch[1]));
+
+  const keywordMatch = quote.match(/Keyword:\s*['"]?([^'"\n]+)['"]?/i);
+  if (keywordMatch) add(keywordMatch[1]);
+
+  return [...candidates];
+}
+
+function titleCaseTurkish(value: string) {
+  return value
+    .toLocaleLowerCase("tr-TR")
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toLocaleUpperCase("tr-TR") + word.slice(1))
+    .join(" ");
+}
 
 function textAlignFromAttrs(attrs: Record<string, unknown> | null | undefined) {
   const value = typeof attrs?.textAlign === "string" ? attrs.textAlign : undefined;
@@ -728,7 +1017,70 @@ documentsRouter.get("/:documentId/editor-content", requireAuth, async (req, res)
     base_version_id: active.id,
     version_number: active.version_number,
     pending_edit_count: pendingCount ?? 0,
+    source_links: await loadDocumentSourceLinks(
+      db,
+      documentId,
+      (doc.project_id as string | null) ?? null,
+      active.id,
+    ),
   });
+});
+
+// GET /single-documents/:documentId/source-references
+documentsRouter.get("/:documentId/source-references", requireAuth, async (req, res) => {
+  const userId = res.locals.userId as string;
+  const userEmail = res.locals.userEmail as string | undefined;
+  const { documentId } = req.params;
+  const versionId =
+    typeof req.query.version_id === "string" ? req.query.version_id : null;
+  const db = createServerSupabase();
+
+  const { data: doc } = await db
+    .from("documents")
+    .select("id, user_id, project_id")
+    .eq("id", documentId)
+    .single();
+  if (!doc) return void res.status(404).json({ detail: "Document not found" });
+  const access = await ensureDocAccess(doc, userId, userEmail, db);
+  if (!access.ok) return void res.status(404).json({ detail: "Document not found" });
+
+  let query = db
+    .from("source_references")
+    .select("*")
+    .eq("document_id", documentId)
+    .order("created_at", { ascending: false });
+  if (versionId) query = query.eq("document_version_id", versionId);
+  const { data, error } = await query;
+  if (error) return void res.status(500).json({ detail: error.message });
+  res.json(data ?? []);
+});
+
+// GET /single-documents/:documentId/source-links
+documentsRouter.get("/:documentId/source-links", requireAuth, async (req, res) => {
+  const userId = res.locals.userId as string;
+  const userEmail = res.locals.userEmail as string | undefined;
+  const { documentId } = req.params;
+  const versionId =
+    typeof req.query.version_id === "string" ? req.query.version_id : null;
+  const db = createServerSupabase();
+
+  const { data: doc } = await db
+    .from("documents")
+    .select("id, user_id, project_id")
+    .eq("id", documentId)
+    .single();
+  if (!doc) return void res.status(404).json({ detail: "Document not found" });
+  const access = await ensureDocAccess(doc, userId, userEmail, db);
+  if (!access.ok) return void res.status(404).json({ detail: "Document not found" });
+
+  res.json(
+    await loadDocumentSourceLinks(
+      db,
+      documentId,
+      (doc.project_id as string | null) ?? null,
+      versionId,
+    ),
+  );
 });
 
 // POST /single-documents/:documentId/editor-save
@@ -1202,7 +1554,7 @@ async function handleEditResolution(
 
   const { data: edit, error: editErr } = await db
     .from("document_edits")
-    .select("id, document_id, change_id, del_w_id, ins_w_id, status")
+    .select("id, document_id, version_id, change_id, del_w_id, ins_w_id, status")
     .eq("id", editId)
     .eq("document_id", documentId)
     .single();
@@ -1253,7 +1605,7 @@ async function handleEditResolution(
 
   const { data: doc, error: docErr } = await db
     .from("documents")
-    .select("id, current_version_id, user_id, project_id")
+    .select("id, filename, current_version_id, user_id, project_id")
     .eq("id", documentId)
     .single();
   console.log(`[edit-resolution] fetched doc`, { doc, docErr });
@@ -1305,6 +1657,17 @@ async function handleEditResolution(
       .update({ status: mode === "accept" ? "accepted" : "rejected", resolved_at: new Date().toISOString() })
       .eq("id", editId);
     console.log(`[edit-resolution] status-only update`, { updErr });
+    await recordVerificationEvent(db, {
+      userId,
+      projectId: (doc.project_id as string | null) ?? null,
+      documentId,
+      documentVersionId: (doc.current_version_id as string | null) ?? null,
+      eventType: mode === "accept" ? "edit_accepted" : "edit_rejected",
+      eventLabel: `AI edit ${mode}ed`,
+      relatedEditId: editId,
+      status: "warning",
+      metadata: { change_id: edit.change_id, found: false },
+    });
     const { data: filenameRow } = await db
       .from("documents")
       .select("filename")
@@ -1323,24 +1686,102 @@ async function handleEditResolution(
     return void res.status(200).json(payload);
   }
 
-  // Overwrite bytes in place at the current version's storage path —
-  // accept/reject mutates the existing version rather than spawning a
-  // new row. This keeps document_versions lean (one row per assistant
-  // edit, not one per accept/reject click) and avoids the N-versions-
-  // per-doc churn as users resolve pending changes.
   const ab = resolvedBytes.buffer.slice(
     resolvedBytes.byteOffset,
     resolvedBytes.byteOffset + resolvedBytes.byteLength,
   ) as ArrayBuffer;
-  console.log(`[edit-resolution] overwriting bytes in place`, {
-    latestPath,
-    byteLength: ab.byteLength,
-  });
-  await uploadFile(
-    latestPath,
-    ab,
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  );
+  let responseVersionId = doc.current_version_id as string | null;
+  let responseDownloadPath = latestPath;
+  let responseVersionNumber = active?.version_number ?? null;
+
+  if (mode === "accept") {
+    const versionSlug = crypto.randomUUID().replace(/-/g, "");
+    const filename = (doc.filename as string | null) ?? "document.docx";
+    const key = versionStorageKey(userId, documentId, versionSlug, filename);
+    await uploadFile(
+      key,
+      ab,
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    );
+
+    let pdfStoragePath: string | null = null;
+    try {
+      const pdfBuf = await docxToPdf(Buffer.from(resolvedBytes));
+      const pdfKey = `converted-pdfs/${userId}/${documentId}/${versionSlug}.pdf`;
+      await uploadFile(
+        pdfKey,
+        pdfBuf.buffer.slice(pdfBuf.byteOffset, pdfBuf.byteOffset + pdfBuf.byteLength) as ArrayBuffer,
+        "application/pdf",
+      );
+      pdfStoragePath = pdfKey;
+    } catch (err) {
+      console.error(`[edit-resolution] DOCX→PDF conversion failed for ${filename}:`, err);
+    }
+
+    const { data: maxRow } = await db
+      .from("document_versions")
+      .select("version_number")
+      .eq("document_id", documentId)
+      .in("source", VERSIONED_SOURCES)
+      .order("version_number", { ascending: false, nullsFirst: false })
+      .limit(1)
+      .maybeSingle();
+    const nextVersionNumber = ((maxRow?.version_number as number | null) ?? 1) + 1;
+    const { data: versionRow, error: versionErr } = await db
+      .from("document_versions")
+      .insert({
+        document_id: documentId,
+        storage_path: key,
+        pdf_storage_path: pdfStoragePath,
+        source: "user_accept",
+        version_number: nextVersionNumber,
+        display_name: active?.display_name ?? filename,
+      })
+      .select("id, version_number")
+      .single();
+    if (versionErr || !versionRow) {
+      console.error("[edit-resolution] user_accept version insert failed", versionErr);
+      return void res.status(500).json({ detail: "Failed to record accepted edit version." });
+    }
+    await db
+      .from("documents")
+      .update({
+        current_version_id: versionRow.id,
+        size_bytes: resolvedBytes.byteLength,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", documentId);
+    const { data: existingLinks } = await db
+      .from("document_source_links")
+      .select("source_reference_id, anchor_type, anchor_text, block_key, from_pos, to_pos")
+      .eq("document_id", documentId)
+      .eq("document_version_id", edit.version_id);
+    if (existingLinks?.length) {
+      await db.from("document_source_links").insert(
+        existingLinks.map((link) => ({
+          document_id: documentId,
+          document_version_id: versionRow.id,
+          source_reference_id: link.source_reference_id,
+          anchor_type: link.anchor_type,
+          anchor_text: link.anchor_text,
+          block_key: link.block_key,
+          from_pos: link.from_pos,
+          to_pos: link.to_pos,
+        })),
+      );
+    }
+    responseVersionId = versionRow.id as string;
+    responseVersionNumber = (versionRow.version_number as number | null) ?? null;
+    responseDownloadPath = key;
+  } else {
+    // Reject keeps the existing assistant-edit version row but resolves the
+    // tracked-change markup in place, preserving the current product flow.
+    await uploadFile(
+      latestPath,
+      ab,
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    );
+  }
 
   const { error: statusErr } = await db
     .from("document_edits")
@@ -1354,6 +1795,29 @@ async function handleEditResolution(
     newStatus: mode === "accept" ? "accepted" : "rejected",
     statusErr,
   });
+
+  await recordVerificationEvent(db, {
+    userId,
+    projectId: (doc.project_id as string | null) ?? null,
+    documentId,
+    documentVersionId: responseVersionId,
+    eventType: mode === "accept" ? "edit_accepted" : "edit_rejected",
+    eventLabel: `AI edit ${mode}ed`,
+    relatedEditId: editId,
+    metadata: { change_id: edit.change_id, found: true },
+  });
+  if (mode === "accept") {
+    await recordVerificationEvent(db, {
+      userId,
+      projectId: (doc.project_id as string | null) ?? null,
+      documentId,
+      documentVersionId: responseVersionId,
+      eventType: "document_version_created",
+      eventLabel: "Accepted edit version created",
+      relatedEditId: editId,
+      metadata: { version_number: responseVersionNumber },
+    });
+  }
 
   const { count: remainingPending } = await db
     .from("document_edits")
@@ -1369,9 +1833,10 @@ async function handleEditResolution(
     .single();
   const payload = {
     ok: true,
-    version_id: doc.current_version_id,
+    version_id: responseVersionId,
+    version_number: responseVersionNumber,
     download_url: buildDownloadUrl(
-      latestPath,
+      responseDownloadPath,
       (filenameRow?.filename as string) ?? "document.docx",
     ),
     remaining_pending: remainingPending ?? 0,

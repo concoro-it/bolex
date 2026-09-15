@@ -1,5 +1,9 @@
 const DEFAULT_YARGI_MCP_SERVER_URL = "https://yargimcp.surucu.dev/mcp";
 const DEFAULT_MEVZUAT_MCP_SERVER_URL = "https://mevzuat.surucu.dev/mcp";
+const DEFAULT_LITERATUR_MCP_SERVER_URL = "https://literatur-mcp.surucu.dev/mcp";
+const DEFAULT_YOKTEZ_MCP_SERVER_URL = "https://yoktezmcp.fastmcp.app/mcp";
+const DEFAULT_MARKAPATENT_MCP_SERVER_URL =
+    "https://markapatent-mcp.fastmcp.app/mcp";
 
 type ToolDefinition = {
     type: "function";
@@ -207,6 +211,19 @@ export const MEVZUAT_MCP_TOOL_NAMES = new Set([
 export const MCP_TOOL_NAMES = new Set([
     ...YARGI_MCP_TOOL_NAMES,
     ...MEVZUAT_MCP_TOOL_NAMES,
+    "search_articles",
+    "pdf_to_html",
+    "get_article_references",
+    "search_yok_tez_detailed",
+    "list_recent_yok_tez",
+    "get_yok_tez_thesis_details",
+    "get_yok_tez_document_markdown",
+    "search_trademarks",
+    "get_trademark_details",
+    "search_patents",
+    "get_patent_details",
+    "search_designs",
+    "get_design_details",
 ]);
 
 export function getMcpServerUrlForTool(toolName: string): string {
@@ -222,6 +239,40 @@ export function getMcpServerUrlForTool(toolName: string): string {
         return (
             process.env.MEVZUAT_MCP_SERVER_URL ||
             DEFAULT_MEVZUAT_MCP_SERVER_URL
+        ).replace(/\/$/, "");
+    }
+    if (
+        toolName === "search_articles" ||
+        toolName === "pdf_to_html" ||
+        toolName === "get_article_references"
+    ) {
+        return (
+            process.env.LITERATUR_MCP_SERVER_URL ||
+            DEFAULT_LITERATUR_MCP_SERVER_URL
+        ).replace(/\/$/, "");
+    }
+    if (
+        toolName === "search_yok_tez_detailed" ||
+        toolName === "list_recent_yok_tez" ||
+        toolName === "get_yok_tez_thesis_details" ||
+        toolName === "get_yok_tez_document_markdown"
+    ) {
+        return (
+            process.env.YOKTEZ_MCP_SERVER_URL ||
+            DEFAULT_YOKTEZ_MCP_SERVER_URL
+        ).replace(/\/$/, "");
+    }
+    if (
+        toolName === "search_trademarks" ||
+        toolName === "get_trademark_details" ||
+        toolName === "search_patents" ||
+        toolName === "get_patent_details" ||
+        toolName === "search_designs" ||
+        toolName === "get_design_details"
+    ) {
+        return (
+            process.env.MARKAPATENT_MCP_SERVER_URL ||
+            DEFAULT_MARKAPATENT_MCP_SERVER_URL
         ).replace(/\/$/, "");
     }
     throw new Error(`Unknown MCP tool: ${toolName}`);
@@ -981,7 +1032,249 @@ const MEVZUAT_MCP_TOOLS: ToolDefinition[] = [
     },
 ];
 
+const LITERATUR_MCP_TOOLS: ToolDefinition[] = [
+    {
+        type: "function",
+        function: {
+            name: "search_articles",
+            description:
+                "Search Turkish academic journals on DergiPark.",
+            parameters: {
+                type: "object",
+                properties: {
+                    query: { type: "string" },
+                    page: { type: "integer", minimum: 1 },
+                    sort: { type: "string", enum: ["newest", "oldest"] },
+                    article_type: { type: "string" },
+                    year: { type: "string" },
+                    index_filter: {
+                        type: "string",
+                        enum: ["tr_dizin_icerenler", "bos_olmayanlar", "hepsi"],
+                    },
+                },
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "pdf_to_html",
+            description: "Convert a DergiPark PDF to readable HTML format.",
+            parameters: {
+                type: "object",
+                properties: { pdf_id: { type: "string" } },
+                required: ["pdf_id"],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "get_article_references",
+            description: "Get references list for a DergiPark article.",
+            parameters: {
+                type: "object",
+                properties: { article_url: { type: "string" } },
+                required: ["article_url"],
+            },
+        },
+    },
+];
+
+const YOKTEZ_MCP_TOOLS: ToolDefinition[] = [
+    {
+        type: "function",
+        function: {
+            name: "search_yok_tez_detailed",
+            description: "Search the YÖK National Thesis Center.",
+            parameters: {
+                type: "object",
+                properties: {
+                    keyword: { type: "string" },
+                    keyword_2: { type: "string" },
+                    keyword_3: { type: "string" },
+                    operator_1: { type: "string", enum: ["and", "or"] },
+                    operator_2: { type: "string", enum: ["and", "or"] },
+                    search_field: {
+                        type: "string",
+                        enum: ["7", "1", "2", "3", "4", "5", "6"],
+                    },
+                    match_type: { type: "string", enum: ["1", "2"] },
+                    thesis_type: {
+                        type: "string",
+                        enum: ["0", "1", "2", "3", "4", "5", "6", "7"],
+                    },
+                    permission_status: { type: "string", enum: ["0", "1", "2"] },
+                    thesis_status: { type: "string", enum: ["3", "1", "0"] },
+                    language: {
+                        type: "string",
+                        enum: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "11", "12"],
+                    },
+                    year_start: { type: "string" },
+                    year_end: { type: "string" },
+                    page: { type: "integer", minimum: 1 },
+                    results_per_page: { type: "integer", minimum: 1, maximum: 50 },
+                },
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "list_recent_yok_tez",
+            description: "List recent YÖK theses without a search keyword.",
+            parameters: {
+                type: "object",
+                properties: {
+                    mode: { type: "string", enum: ["7", "8"] },
+                    page: { type: "integer", minimum: 1 },
+                    results_per_page: { type: "integer", minimum: 1, maximum: 50 },
+                },
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "get_yok_tez_thesis_details",
+            description: "Fetch rich thesis metadata without downloading PDF.",
+            parameters: {
+                type: "object",
+                properties: {
+                    detail_page_url: { type: "string" },
+                    thesis_key: { type: "string" },
+                    encrypted_no: { type: "string" },
+                },
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "get_yok_tez_document_markdown",
+            description: "Retrieve a specific YÖK thesis PDF page as Markdown.",
+            parameters: {
+                type: "object",
+                properties: {
+                    detail_page_url: { type: "string" },
+                    page_number: { type: "integer", minimum: 1 },
+                },
+                required: ["detail_page_url"],
+            },
+        },
+    },
+];
+
+const MARKAPATENT_MCP_TOOLS: ToolDefinition[] = [
+    {
+        type: "function",
+        function: {
+            name: "search_trademarks",
+            description: "Search trademarks registered in Turkey on TURKPATENT.",
+            parameters: {
+                type: "object",
+                properties: {
+                    trademark_name: { type: "string" },
+                    name_operator: {
+                        type: "string",
+                        enum: ["contains", "startsWith", "equals"],
+                    },
+                    holder_name: { type: "string" },
+                    holder_name_operator: {
+                        type: "string",
+                        enum: ["startsWith", "equals"],
+                    },
+                    nice_classes: { type: "string" },
+                    limit: { type: "integer", minimum: 1, maximum: 100 },
+                    offset: { type: "integer", minimum: 0 },
+                },
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "get_trademark_details",
+            description: "Get detailed information about a trademark application.",
+            parameters: {
+                type: "object",
+                properties: { application_number: { type: "string" } },
+                required: ["application_number"],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "search_patents",
+            description: "Search patents registered in Turkey on TURKPATENT.",
+            parameters: {
+                type: "object",
+                properties: {
+                    title: { type: "string" },
+                    abstract: { type: "string" },
+                    owner: { type: "string" },
+                    applicant: { type: "string" },
+                    application_number: { type: "string" },
+                    ipc_class: { type: "string" },
+                    cpc_class: { type: "string" },
+                    attorney: { type: "string" },
+                    limit: { type: "integer", minimum: 1, maximum: 100 },
+                    offset: { type: "integer", minimum: 0 },
+                },
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "get_patent_details",
+            description: "Get detailed information about a patent application.",
+            parameters: {
+                type: "object",
+                properties: { application_number: { type: "string" } },
+                required: ["application_number"],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "search_designs",
+            description: "Search industrial designs registered in Turkey on TURKPATENT.",
+            parameters: {
+                type: "object",
+                properties: {
+                    design_name: { type: "string" },
+                    designer: { type: "string" },
+                    applicant: { type: "string" },
+                    registration_no: { type: "string" },
+                    locarno_class: { type: "string" },
+                    attorney: { type: "string" },
+                    limit: { type: "integer", minimum: 1, maximum: 100 },
+                    offset: { type: "integer", minimum: 0 },
+                },
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "get_design_details",
+            description: "Get detailed information about a design application.",
+            parameters: {
+                type: "object",
+                properties: { file_id: { type: "string" } },
+                required: ["file_id"],
+            },
+        },
+    },
+];
+
 export const MCP_TOOLS: ToolDefinition[] = [
     ...YARGI_MCP_TOOLS,
     ...MEVZUAT_MCP_TOOLS,
+    ...LITERATUR_MCP_TOOLS,
+    ...YOKTEZ_MCP_TOOLS,
+    ...MARKAPATENT_MCP_TOOLS,
 ];
